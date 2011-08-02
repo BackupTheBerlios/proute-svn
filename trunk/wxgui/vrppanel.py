@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 1st 2011 by Fabien Tricoire
+# Last modified: August 3rd 2011 by Fabien Tricoire
 #
 import os
 import sys
@@ -156,12 +156,15 @@ class VrpPanel(wx.Panel):
     def onDoubleClick(self, event):
         self.exportToPDF()
 
-    def exportToPDF(self):
+    def exportToPDF(self, fName=None, dirName=None):
         self.nTimesSaved += 1
 #         ww, hh = (self.inputData.width, self.inputData.height) \
 #             if self.styleSheet.keepAspectRatio else self.GetClientSizeTuple()
         ww, hh = self.GetClientSizeTuple()
-        fName = self.solutionData.name + '-' + str(self.nTimesSaved) +'.pdf'
+        if fName is None:
+            fName = self.solutionData.name + '-' + str(self.nTimesSaved) +'.pdf'
+        if not dirName is None:
+            fName = os.path.join(dirName, fName)
         try:
             import reportlabCanvas
             canvas = reportlabCanvas.ReportlabCanvas(ww, hh, fName)

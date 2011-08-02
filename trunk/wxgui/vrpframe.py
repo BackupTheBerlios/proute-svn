@@ -1,8 +1,9 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: July 30th 2011 by Fabien Tricoire
+# Last modified: August 3rd 2011 by Fabien Tricoire
 #
+import os
 import sys
 
 import wx
@@ -375,7 +376,29 @@ class VrpFrame(wx.Frame):
     def exportToPDF(self, event):
         # save only active solution
         if event.GetId() == 110:
-            self.browserPanel.solutionBook.GetCurrentPage().exportToPDF()
+            # select a pdf file to save...
+            wildcard='PDF files (*.pdf)|*.PDF'
+            fileSelector = wx.FileDialog(self,
+                                         message="Export to PDF",
+                                         style=wx.FD_SAVE,
+                                         wildcard=wildcard)
+            if fileSelector.ShowModal() == wx.ID_OK:
+                files = fileSelector.GetPaths()
+                fName = str(files[0])
+                baseName, extension = os.path.splitext(fName)
+                if extension.lower() != 'pdf':
+                    fName += '.pdf'
+                self.browserPanel.solutionBook.GetCurrentPage().\
+                    exportToPDF(fName)
+            fileSelector.Destroy()
         else: # save each solution
-            for i in range(self.browserPanel.solutionBook.GetPageCount()):
-                self.browserPanel.solutionBook.GetPage(i).exportToPDF()
+            # select a directory
+            dirSelector = wx.DirDialog(self,
+                                       message="Export to directory",
+                                       style=wx.DD_DEFAULT_STYLE)
+            if dirSelector.ShowModal() == wx.ID_OK:
+                dir = dirSelector.GetPath()
+                for i in range(self.browserPanel.solutionBook.GetPageCount()):
+                    self.browserPanel.solutionBook.GetPage(i).exportToPDF(\
+                        dirName=dir)
+            dirSelector.Destroy()

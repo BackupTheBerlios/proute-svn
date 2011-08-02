@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: July 31st 2011 by Fabien Tricoire
+# Last modified: August 3rd 2011 by Fabien Tricoire
 #
 import sys
 import os
@@ -9,6 +9,7 @@ import os
 # startingDir = os.getcwd()
 startingDir = os.path.dirname(sys.argv[0])
 if startingDir == '' or startingDir == '.': startingDir = os.getcwd()
+startingDir = os.path.abspath(startingDir)
 #if startingDir == '': startingDir = '.'
 # user config directory
 homeDir =  os.getenv('USERPROFILE') or os.getenv('HOME')
