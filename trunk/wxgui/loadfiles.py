@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: July 29th 2011 by Fabien Tricoire
+# Last modified: August 3rd 2011 by Fabien Tricoire
 #
 import os
 
@@ -44,10 +44,10 @@ class LoadDataDialog(wx.Dialog):
         mainSizer.Add(self.instanceTypeChoice, 0,
                       wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
         # third line: load an instance
-        instanceFileButton = wx.Button(self, -1, 'Select instance')
-        mainSizer.Add(instanceFileButton, 0,
+        self.instanceFileButton = wx.Button(self, -1, 'Select instance')
+        mainSizer.Add(self.instanceFileButton, 0,
                       wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
-        self.Bind(wx.EVT_BUTTON, self.onInstanceButton, instanceFileButton)
+        self.Bind(wx.EVT_BUTTON, self.onInstanceButton, self.instanceFileButton)
         self.instanceNameField = wx.TextCtrl(self, size=(200,-1))
         mainSizer.Add(self.instanceNameField, 0,
                       wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -69,6 +69,7 @@ class LoadDataDialog(wx.Dialog):
         # set default problem type if specified
         if problemType:
             self.typeChoice.SetSelection(availableTypes.index(problemType))
+            self.typeChoice.Disable()
         # update choice lists
         self.updateChoice()
         # files we want to load
@@ -80,8 +81,11 @@ class LoadDataDialog(wx.Dialog):
                 self.loader.getAvailableInstanceTypes(problemType)
             self.instanceTypeChoice.SetSelection( \
                 availableInstanceTypes.index(instanceType))
+            self.instanceTypeChoice.Disable()
         if instanceFileName:
             self.instanceNameField.SetValue(instanceFileName)
+            self.instanceNameField.Disable()
+            self.instanceFileButton.Disable()
         if problemType and solutionType:
             availableSolutionTypes = \
                 self.loader.getAvailableSolutionTypes(problemType)

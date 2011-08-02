@@ -325,6 +325,7 @@ class VrpFrame(wx.Frame):
                                              self.solutions[0].solutionType)
         if vrpData and solutionData:
             self.browserPanel.addSolutions(vrpData, solutionData)
+            self.solutions += solutionData
 
     # pop grid controls frame
     def popGridControls(self, event):
