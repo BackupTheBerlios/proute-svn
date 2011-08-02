@@ -1,8 +1,10 @@
 * How to load my data?
-  First, try using the generic input plugins, by formatting your data for it.
-  If the generic plugins are not generic enough for your data, then suport must
-  be added for it, either by asking the developer and hoping he has time or by
-  adding support yourself.
+  First, try using the generic input plugins (PIF and PSF), by formatting your
+  data for it. If the generic plugins are not generic enough for your data,
+  then support must be added for it, either by asking the developer and hoping
+  he has time or by adding support yourself. This is done by writing a
+  plugin. User-defined plugins are python scripts; they should go to the
+  "~/.proute/plugins" directory, where "~" stands for the home directory.
 
 * How to add support for a new problem type, or for a new instance type:
   Derive the class vrpdata.VrpInputData:
