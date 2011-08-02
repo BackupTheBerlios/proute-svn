@@ -6,6 +6,12 @@
   plugin. User-defined plugins are python scripts; they should go to the
   "~/.proute/plugins" directory, where "~" stands for the home directory.
 
+* How do I use the generic input plugins?
+  Check the example.pif (instance file) and example.psf (solution file) in the
+  sample data files. They are well documented and should be
+  self-explanatory. If this is not enough, feel free to send a mail or request
+  support via the website.
+
 * How to add support for a new problem type, or for a new instance type:
   Derive the class vrpdata.VrpInputData:
   - define the defaultFor and instanceType class attributes
