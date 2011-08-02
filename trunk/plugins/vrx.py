@@ -1,7 +1,7 @@
 #
 # File created July 30th 2011 by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: July 31st 2011 by Fabien Tricoire
+# Last modified: August 2nd 2011 by Fabien Tricoire
 #
 # -*- coding: utf-8 -*-
 
@@ -116,8 +116,14 @@ class VRXStyleSheet(stylesheet.StyleSheet):
         self.styles.append(\
             basestyles.RouteDisplayer({'draw depot arcs': True}))
         # basic style: display nodes
-        self.styles.append(basestyles.NodeDisplayer({'node size': 3}))
+        self.styles.append(basestyles.NodeDisplayer({'node size': 3,
+                                                     'hide unused nodes': True,
+                                                     }))
         # display a label for each node
-        self.styles.append(basestyles.NodeLabelDisplayer())
+        self.styles.append(basestyles.NodeLabelDisplayer({'hide unused nodes':
+                                                              True,
+                                                          }))
         # display each node's demand
-        self.styles.append(basestyles.NodeDemandDisplayer())
+        self.styles.append(basestyles.NodeDemandDisplayer({'hide unused nodes':
+                                                              True,
+                                                          }))

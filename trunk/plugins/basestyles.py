@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 1st 2011 by Fabien Tricoire
+# Last modified: August 2nd 2011 by Fabien Tricoire
 #
 from style import *
 
@@ -30,7 +30,7 @@ class NodeDisplayer( Style ):
                      'node size': 3,
                      'depot contour thickness': 1,
                      'node contour thickness': 1,
-                     'hide unused nodes': True,
+                     'hide unused nodes': False,
                       }
 
     #
@@ -93,7 +93,7 @@ class NodeLabelDisplayer( Style ):
         'font size': 12,
         'font family': 'Verdana',
         'font style': 'normal',
-        'hide unused nodes': True,
+        'hide unused nodes': False,
         }
     #
     def paint(self, inputData, solutionData,
@@ -140,7 +140,7 @@ class NodeDemandDisplayer( Style ):
         'min. height': 1,
         'max. height': 20,
         'colour': Colour(100, 100, 250, 255),
-        'hide unused nodes': True,
+        'hide unused nodes': False,
         }
     #
     def __init__(self, parameterValue={}):
