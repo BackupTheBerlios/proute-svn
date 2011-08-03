@@ -267,24 +267,24 @@ class VrpPanel(wx.Panel):
         centerY = (self.styleSheet.ymax + self.styleSheet.ymin) / 2.0
         width = self.styleSheet.xmax - self.styleSheet.xmin
         height = self.styleSheet.ymax - self.styleSheet.ymin
-        # left: unicode 28
-        if event.GetUniChar() == 28:
+        # left
+        if event.GetKeyCode() == wx.WXK_LEFT:
             centerX -= xoffset 
-        # right: 29
-        if event.GetUniChar() == 29:
+        # right
+        elif event.GetKeyCode() == wx.WXK_RIGHT:
             centerX += xoffset
-        # top: 30
-        if event.GetUniChar() == 30:
+        # top
+        elif event.GetKeyCode() == wx.WXK_UP:
             centerY += yoffset
-        # bottom: 31
-        if event.GetUniChar() == 31:
+        # bottom
+        elif event.GetKeyCode() == wx.WXK_DOWN:
             centerY -= yoffset
-        # +: 43
-        if event.GetUniChar() == 43:
+        # +
+        elif unichr(event.GetUnicodeKey()) == '+':
             width /= zoomFactor
             height /= zoomFactor
-        # -: 45
-        if event.GetUniChar() == 45:
+        # -
+        elif unichr(event.GetUnicodeKey()) == '-':
             width *= zoomFactor
             height *= zoomFactor
         self.updateView(centerX, centerY, width, height)

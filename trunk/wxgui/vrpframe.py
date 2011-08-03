@@ -366,7 +366,7 @@ class VrpFrame(wx.Frame):
         except Exception as e:
             description += '\n\nPython Imaging Library (PIL) not installed'
         about.Description = wordwrap(description, 500, wx.ClientDC(self))
-        about.WebSite = ('http://www.tachatte.org/', 'proute home page')
+        about.WebSite = ('http://proute.berlios.de/', 'proute home page')
         about.Developers = [ 'Fabien Tricoire' ]
         licenseText = ''
         about.License = wordwrap(licenseText, 500, wx.ClientDC(self))
