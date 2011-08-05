@@ -14,7 +14,7 @@ class FNDPInputData(vrpdata.VrpInputData):
     problemType = 'FNDP'
     # load a free newspaper delivery problem
     def loadData(self, fName):
-        self.nodeAttributes += [ 'demand', 'capacity' ]
+        self.nodeAttributes += [ 'demand', 'capacity', 'demand per period' ]
         self.nodes = []
         self.attributes = {'# periods': 0}
         # load a MCDARP instance
@@ -24,12 +24,14 @@ class FNDPInputData(vrpdata.VrpInputData):
             else:
                 tokens = line.split(';')
                 if len(tokens) == 7:
-                    self.attributes['nNodes'], self.attributes['# periods'], \
-                        nVehicles, self.attributes['capacity'], \
+                    self.attributes['nNodes'], \
+                        self.attributes['# periods'], \
+                        nVehicles, \
+                        self.attributes['capacity'], \
                         self.attributes['service time'], \
                         self.attributes['depot ID'], \
-                        self.attributes['period duration'] = [ string.atoi(x)
-                                                               for x in tokens ]
+                        self.attributes['period duration'] = \
+                        [ string.atoi(x) for x in tokens ]
                 elif len(tokens) == self.attributes['# periods'] and \
                         not 'production schedule' in self.attributes:
                     self.attributes['production schedule'] = [ string.atoi(x)
@@ -43,8 +45,11 @@ class FNDPInputData(vrpdata.VrpInputData):
                                                  for x in tokens[1:] ]
                     thisNode['is depot'] = \
                         thisNode['index'] == self.attributes['depot ID']
+                    thisNode['demand per period'] = \
+                        [ x * thisNode['demand'] / 100.0
+                          for x in self.attributes['production schedule'] ]
                     self.nodes.append(thisNode)
-
+        
 class FNDPSolutionData(vrpdata.VrpSolutionData):
     problemType = 'FNDP'
     # load a free newspaper solution by Archetti et al.

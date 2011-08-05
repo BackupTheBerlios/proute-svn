@@ -216,6 +216,7 @@ class NodeListAttributeAsRectanglesDisplayer(NodeAttributeAsRectangleDisplayer):
         'padding': IntParameterInfo(0, 60),
         'width': IntParameterInfo(2, 20),
         'max. height': IntParameterInfo(5, 200),
+        'colours': ColourMapParameterInfo(),
         }
     defaultValue = {
         'x offset': -5,
@@ -225,6 +226,7 @@ class NodeListAttributeAsRectanglesDisplayer(NodeAttributeAsRectangleDisplayer):
         'min. height': 1,
         'max. height': 20,
         'colours': generateRandomColours(100),
+        'attribute': '',
         }
     #
     def paint(self, inputData, solutionData,
