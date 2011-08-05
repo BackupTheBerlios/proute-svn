@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: July 30th 2011 by Fabien Tricoire
+# Last modified: August 6th 2011 by Fabien Tricoire
 #
 import wx
 
@@ -24,7 +24,7 @@ class StyleSheetControls(ScrolledPanel):
         # add a text label
         sizer.Add(wx.StaticText(self, label='Style sheet control'),
                   proportion=0,
-                  flag=wx.ALIGN_CENTER | wx.EXPAND,
+                  flag=wx.ALIGN_CENTER,
                   border=3)
         # padding
         sizer.Add((10,10))

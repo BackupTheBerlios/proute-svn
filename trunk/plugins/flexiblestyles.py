@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 1st 2011 by Fabien Tricoire
+# Last modified: August 6th 2011 by Fabien Tricoire
 #
 from style import *
 
@@ -56,7 +56,6 @@ class FlexibleSubInterval(Style):
                                                 0.0,
                                                 self.parameterValue['width'])
         
-
     #
     def paint(self, inputData, solutionData,
               canvas, convertX, convertY,
@@ -157,7 +156,12 @@ class NodeAttributeAsRectangleDisplayer( Style ):
         }
     def __init__(self, parameterValue={}):
         Style.__init__(self, parameterValue)
-        self.minValue = False
+        self.minValue = None
+    #
+    def setParameter(self, parameterName, parameterValue):
+        Style.setParameter(self, parameterName, parameterValue)
+        if parameterName == 'max. height' or parameterName == 'attribute':
+            self.minValue = None
     #
     def paint(self, inputData, solutionData,
               canvas, convertX, convertY,
@@ -174,7 +178,7 @@ class NodeAttributeAsRectangleDisplayer( Style ):
         if not self.parameterValue['attribute'] in inputData.nodeAttributes:
             return
         # first compute min and max demand if it's the first time we're here
-        if not self.minValue:
+        if self.minValue is None:
             values = [ node[self.parameterValue['attribute']]
                         for node in inputData.nodes ]
             self.minValue, self.maxValue = min(values), max(values)
@@ -202,7 +206,7 @@ class NodeAttributeAsRectangleDisplayer( Style ):
 
 # Display a list of rectangles proportional to cell value of given list
 # attribute for each node
-class NodeListAttributeAsRectanglesDisplayer( Style ):
+class NodeListAttributeAsRectanglesDisplayer(NodeAttributeAsRectangleDisplayer):
     description = 'small bars for list attribute'
     # used multiple times
     offsetInfo = IntParameterInfo(-20, 20)
@@ -222,9 +226,6 @@ class NodeListAttributeAsRectanglesDisplayer( Style ):
         'max. height': 20,
         'colours': generateRandomColours(100),
         }
-    def __init__(self, parameterValue={}):
-        Style.__init__(self, parameterValue)
-        self.minValue = False
     #
     def paint(self, inputData, solutionData,
               canvas, convertX, convertY,

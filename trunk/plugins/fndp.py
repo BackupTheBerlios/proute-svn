@@ -1,12 +1,13 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: July 29th 2011 by Fabien Tricoire
+# Last modified: August 6th 2011 by Fabien Tricoire
 #
 import string
 import sys
 
 import vrpdata
+import vrpexceptions
 import stylesheet
 
 class FNDPInputData(vrpdata.VrpInputData):
@@ -56,9 +57,11 @@ class FNDPSolutionData(vrpdata.VrpSolutionData):
             if tokens[0] == '***':
                 continue
             elif tokens[1] != 'Trip':
-                print 'incorrect file format'
-                print line
-                sys.exit(0)
+#                 print 'incorrect file format'
+#                 print line
+                raise \
+                    vrpexceptions.SolutionFileFormatException(self.problemType,
+                                                              fName)
             else:
                 nodes = [ string.atoi(x.split('(')[0])
                           for x in tokens[6:-3] ]

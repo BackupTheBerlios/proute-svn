@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: July 29th 2011 by Fabien Tricoire
+# Last modified: August 6th 2011 by Fabien Tricoire
 #
 import os
 
@@ -90,8 +90,9 @@ class ChoiceListStyleEditTool(StyleEditTool, wx.Choice):
     def __init__(self, parent, styleToEdit, paramName):
         values = styleToEdit.parameterInfo[paramName].possibleValues
         wx.Choice.__init__(self, parent, -1, choices=values)
-        self.SetSelection(self.FindString(\
-                styleToEdit.parameterValue[paramName]))
+        if paramName in styleToEdit.parameterValue:
+            self.SetSelection(self.FindString(\
+                    styleToEdit.parameterValue[paramName]))
         StyleEditTool.__init__(self, styleToEdit, paramName)
         self.Bind(wx.EVT_CHOICE , self.modifyValue)
     #
