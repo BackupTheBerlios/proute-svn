@@ -108,15 +108,15 @@ class PSFSolutionData(vrpdata.VrpSolutionData):
                     # route information format
                     if fields[0] == 'route':
                         routeFields = fields[1:]
-                        self.routeAttributes += fields
+                        self.routeAttributes += routeFields
                     # arc information format
                     elif fields[0] == 'arc':
                         arcFields = fields[1:]
-                        self.routeArcAttributes += fields
+                        self.routeArcAttributes += arcFields
                     # node information format
                     elif fields[0] == 'node':
                         nodeFields = fields[1:]
-                        self.routeNodeAttributes += fields
+                        self.routeNodeAttributes += nodeFields
                         # logically after this line we switch to content
                         thisRoute = {}
                         stage = 'content'
