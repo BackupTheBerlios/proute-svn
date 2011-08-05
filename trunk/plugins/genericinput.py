@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: July 29th 2011 by Fabien Tricoire
+# Last modified: August 6th 2011 by Fabien Tricoire
 #
 # -*- coding: utf-8 -*-
 
@@ -23,7 +23,8 @@ def fillDict(keys, values):
     return thisDict
 
 class PIFInputData(vrpdata.VrpInputData):    
-    problemType = 'PIF'
+    problemType = 'Generic'
+    instanceType = 'PIF'
     # load an instance
     def loadData(self, fName):
         stage = 'header'
@@ -57,7 +58,10 @@ class PIFInputData(vrpdata.VrpInputData):
                 # line specifying node format
                 elif stage == 'format':
                     fields = line.split(separator)
-                    self.nodeAttributes += fields
+                    already = set(self.nodeAttributes)
+                    for f in fields:
+                        if not f in already:
+                            self.nodeAttributes.append(f)
                     stage = 'content'
                 # information for one node
                 elif stage == 'content':
@@ -70,7 +74,7 @@ class PIFInputData(vrpdata.VrpInputData):
                     self.nodes.append(thisNode)
 
 class PSFSolutionData(vrpdata.VrpSolutionData):
-    problemType = 'PIF'
+    problemType = 'Generic'
     solutionType = 'PSF'
     # load a CVRP solution by Tricoire to a CMT instance
     def loadData(self, fName, vrpData):
@@ -102,7 +106,7 @@ class PSFSolutionData(vrpdata.VrpSolutionData):
                         self.attributes[key] = eval(value)
                     except Exception as e:
                         self.attributes[key] = value
-                # line specifying node format
+                # line specifying format
                 elif stage == 'format':
                     fields = line.split(separator)
                     # route information format
@@ -157,4 +161,3 @@ class PSFSolutionData(vrpdata.VrpSolutionData):
                         thisRoute['nodes'].append(thisArc)
         # let's not forget the last route
         self.routes.append(thisRoute)
-
