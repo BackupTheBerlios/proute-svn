@@ -95,7 +95,12 @@ class StyleSheet(object):
         self.styles.append(basestyles.NodeDisplayer())
 
     # compute bounding box for drawing operations
-    def computeBoundingBox(self, xmin, xmax, ymin, ymax, inputData, padding):
+    # this returns a box that has the appropriate ratio in case aspect ratio
+    # should be preserved
+    def computeInnerBoundingBox(self,
+                                xmin, xmax, ymin, ymax,
+                                inputData,
+                                padding):
         # first-time only: set starting box to the whole problem
         if self.xmin is None:
             self.xmin, self.ymin, self.xmax, self.ymax = \
@@ -121,6 +126,24 @@ class StyleSheet(object):
         yDiff = (ymax - ymin - myHeight) / 2.0
         return xmin+xDiff, xmax-xDiff, ymin+yDiff, ymax-yDiff
 
+    # compute bounding box for drawing operations
+    # this version returns the whole available drawing area
+    def computeOuterBoundingBox(self,
+                                xmin, xmax, ymin, ymax,
+                                inputData,
+                                padding):
+        return xmin + padding, xmax - padding, ymin + padding, ymax - padding
+
+    # compute coordinate transformations
+    def getTransformations(self, xmin, xmax, ymin, ymax, inputData, padding):
+        xmin, xmax, ymin, ymax = self.computeInnerBoundingBox(xmin, xmax,
+                                                              ymin, ymax,
+                                                              inputData,
+                                                              padding)
+        convertX = util.intervalMapping(self.xmin, self.xmax, xmin, xmax)
+        convertY = util.intervalMapping(self.ymin, self.ymax, ymin, ymax)
+        return convertX, convertY
+
     def getReverseCoordMapping(self, canvas, inputData):
         # compute bounding box for drawing
         width, height = canvas.getSize()
@@ -142,10 +165,10 @@ class StyleSheet(object):
         if self.grid and self.displayCellTitle:
             cellYmax -= cellTitleFontSize
         xmin, xmax, ymin, ymax = \
-            self.computeBoundingBox(cellXmin, cellXmax,
-                                    cellYmin, cellYmax,
-                                    inputData,
-                                    padding)
+            self.computeInnerBoundingBox(cellXmin, cellXmax,
+                                         cellYmin, cellYmax,
+                                         inputData,
+                                         padding)
         revX = util.intervalMappingModulo(xmin, xmax,
                                           self.xmin, self.xmax,
                                           cellWidth)
@@ -239,16 +262,16 @@ class StyleSheet(object):
             # only draw in this cell
             canvas.restrictDrawing(cellXmin, cellYmin, cellXmax, cellYmax)
             # next steps:
-            xmin, xmax, ymin, ymax = self.computeBoundingBox(cellXmin, cellXmax,
-                                                             cellYmin, cellYmax,
-                                                             inputData,
-                                                             margin)
-            convertX = util.intervalMapping(self.xmin, self.xmax, xmin, xmax)
-            convertY = util.intervalMapping(self.ymin, self.ymax, ymin, ymax)
-            # artificially increase the painting area to allow drawing the map
-            # onto the padding area
-            xExtra = padding * (self.xmax-self.xmin) / (xmax-xmin)
-            yExtra = padding * (self.ymax-self.ymin) / (ymax-ymin)
+            xmin, xmax, ymin, ymax = \
+                self.computeOuterBoundingBox(cellXmin, cellXmax,
+                                             cellYmin, cellYmax,
+                                             inputData,
+                                             margin)
+            revX, revY = self.getReverseCoordMapping(canvas, inputData)
+            convertX, convertY = self.getTransformations(cellXmin, cellXmax,
+                                                         cellYmin, cellYmax,
+                                                         inputData,
+                                                         margin)
             # predicate if required for grid
             if not self.grid:
                 newRoutePredicate = routePredicate
@@ -266,10 +289,9 @@ class StyleSheet(object):
                                     nodePredicate,
                                     newRoutePredicate,
                                     arcPredicate,
-                                    (self.xmin - xExtra,
-                                     self.ymin - yExtra,
-                                     self.xmax + xExtra,
-                                     self.ymax + yExtra) )
+                                    (revX(xmin-padding+2), revY(ymin-padding+2),
+                                     revX(xmax+padding-2), revY(ymax+padding-2))
+                                    )
                 except MissingAttributeException as e:
                     print 'skipping', style.__class__.__name__, ':', e
             # allow to draw everywhere again

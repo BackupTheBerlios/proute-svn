@@ -67,11 +67,6 @@ class GoogleMapDisplayer( Style ):
                                          resize( (int(newWidth),
                                                   int(newHeight)),
                                             self.scalingMethod )
-#         newWidth = convertX(self.xSE) - convertX(self.xNW)
-#         newHeight = convertY(self.yNW) - convertY(self.ySE)
-#         if newHeight > 0 and newWidth > 0:
-#             newBitmap = self.bitmap.resize( (int(newWidth), int(newHeight)),
-#                                             self.scalingMethod )
             # finally we can paint the bitmap!
             canvas.drawBitmap(newBitmap, (convertX(boundingBox[0]),
                                           convertY(boundingBox[3])))
@@ -134,6 +129,7 @@ class GoogleBetterMapDisplayer(GoogleMapDisplayer):
         width = inputData.xmax - inputData.xmin
         height = inputData.ymax - inputData.ymin
         while mapWidth / 2 >= width and mapHeight / 2 >= height:
+#         while mapWidth / 2 >= width and mapHeight / 2 >= height:
             zoomLevel += 1
             mapWidth /= 2
             mapHeight /= 2
