@@ -279,7 +279,7 @@ class NodeListAttributeAsRectanglesDisplayer(NodeAttributeAsRectangleDisplayer):
 
 # Display a rectangle proportional to the demand for each node
 class FlexibleNodeDisplayer( Style ):
-    description = 'customizable shape for nodes'
+    description = 'customizable nodes'
     # used multiple times
     offsetInfo = IntParameterInfo(-20, 20)
     parameterInfo = {
@@ -311,8 +311,8 @@ class FlexibleNodeDisplayer( Style ):
         'filter attribute': 'is depot',
         'filter value': 'True',
         }
-    def __init__(self, parameterValue={}):
-        Style.__init__(self, parameterValue)
+    def __init__(self, description=None, parameterValue={}):
+        Style.__init__(self, description, parameterValue)
         self.minValue = None
     #
     def setParameter(self, parameterName, parameterValue):
@@ -359,7 +359,10 @@ class FlexibleNodeDisplayer( Style ):
                             for x in rawValues ]
             self.parameterInfo['filter value'] = \
                 EnumerationParameterInfo(finalValues)
-            self.parameterValue['filter value'] = finalValues[0]
+            # case where 
+            if not 'filter value' in self.parameterValue or \
+                    not self.parameterValue['filter value'] in finalValues:
+                self.parameterValue['filter value'] = finalValues[0]
         # compute min and max demand if required
         if self.minValue is None:
             values = [ node[self.parameterValue['radius attribute']]

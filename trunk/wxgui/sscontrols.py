@@ -170,6 +170,7 @@ class StyleSheetEditor(wx.Panel):
 
     def renameStyle(self, event):
         index = self.styleCheckList.GetSelection()
+        self.styles[index].description = self.renameField.GetValue()
         self.styleCheckList.SetString(index, self.renameField.GetValue())
         
     # update the style sheet control buttons in case selection changed in the

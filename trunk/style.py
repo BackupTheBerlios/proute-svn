@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: July 29th 2011 by Fabien Tricoire
+# Last modified: August 7th 2011 by Fabien Tricoire
 #
 # this file contains styles used to display input and solution data for routing
 # problems
@@ -129,10 +129,13 @@ class Style( object ):
     
     """
     description = 'no description'
-    def __init__(self, parameterValue={}):
+    def __init__(self, description=None, parameterValue={}):
         self.parameterValue = {}
         self.parameterInfo = {}
-        self.description = self.__class__.description
+        if description is None:
+            self.description = self.__class__.description
+        else:
+            self.description = description
         # required attributes for this style
         self.requiredGlobalAttributes = [ ]
         self.requiredNodeAttributes = [ 'index' ]
@@ -151,7 +154,8 @@ class Style( object ):
 
     def __repr__(self):
         return self.__module__ + '.' + self.__class__.__name__ + \
-            '(parameterValue=' + str(self.parameterValue) + ')'
+            '(description=\'' + self.description + \
+            '\', parameterValue=' + str(self.parameterValue) + ')'
             
     def setParameter(self, parameterName, parameterValue):
         self.parameterValue[parameterName] = parameterValue

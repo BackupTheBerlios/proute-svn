@@ -29,11 +29,10 @@ class StyleEditTool:
 #               'to value', self.getValue())
         events.postStyleSheetUpdateEvent(self)
         events.postStyleUpdateEvent(self)
-
     # should be overloaded by some subclasses
     def update(self):
         pass
-
+        
 class BoolStyleEditTool(StyleEditTool, wx.CheckBox):
     def __init__(self, parent, styleToEdit, paramName):
         wx.CheckBox.__init__(self, parent, id=-1)
@@ -50,13 +49,16 @@ class IntStyleEditTool(StyleEditTool, wx.SpinCtrl):
         StyleEditTool.__init__(self, styleToEdit, paramName)
         self.SetRange(styleToEdit.parameterInfo[paramName].LB,
                       styleToEdit.parameterInfo[paramName].UB)
-        currentValue = styleToEdit.parameterValue[paramName]
-        if currentValue.__class__ == int:
-            self.SetValue(styleToEdit.parameterValue[paramName])
-            self.Bind(wx.EVT_SPINCTRL, self.modifyValue)
+        self.update()
+        self.Bind(wx.EVT_SPINCTRL, self.modifyValue)
 
     def getValue(self):
         return self.GetValue()
+    #
+    def update(self):
+        currentValue = self.styleToEdit.parameterValue[self.parameterName]
+        if currentValue.__class__ == int:
+            self.SetValue(currentValue)
     
 class FloatStyleEditTool(StyleEditTool, floatspin.FloatSpin):
     def __init__(self, parent, styleToEdit, paramName):
@@ -75,7 +77,7 @@ class FloatStyleEditTool(StyleEditTool, floatspin.FloatSpin):
         
     def getValue(self):
         return self.GetValue()
-    
+
 def wxColourToColour(colour):
     return style.Colour(colour.Red(), colour.Green(), colour.Blue(),
                         colour.Alpha())
@@ -93,12 +95,9 @@ class ColourStyleEditTool(StyleEditTool, csel.ColourSelect):
         
 class ChoiceListStyleEditTool(StyleEditTool, wx.Choice):
     def __init__(self, parent, styleToEdit, paramName):
-        values = styleToEdit.parameterInfo[paramName].possibleValues
-        wx.Choice.__init__(self, parent, -1, choices=values)
-        if paramName in styleToEdit.parameterValue:
-            self.SetSelection(self.FindString(\
-                    styleToEdit.parameterValue[paramName]))
         StyleEditTool.__init__(self, styleToEdit, paramName)
+        wx.Choice.__init__(self, parent, -1)
+        self.update()
         self.Bind(wx.EVT_CHOICE , self.modifyValue)
     #
     def getValue(self):
