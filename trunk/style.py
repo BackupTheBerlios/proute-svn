@@ -171,7 +171,6 @@ class Style( object ):
             print 'Cannot paint using style ' + self.__class__.__name__ + \
                 ': ' + str(e)
             
-
     def preProcessAttributes(self, vrpData, solutionData):
         for attr in self.requiredGlobalAttributes:
             if not attr in vrpData.globalAttributes:

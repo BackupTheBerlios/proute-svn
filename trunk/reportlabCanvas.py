@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 1st 2011 by Fabien Tricoire
+# Last modified: August 7th 2011 by Fabien Tricoire
 #
 import random
 from math import *
@@ -57,6 +57,8 @@ class ReportlabCanvas(Canvas):
     def blank(self):
         self.canvas = rlcanvas.Canvas(self.fName)
         self.canvas.setPageSize((self.width, self.height))
+        creatorString = 'proute - http://proute.berlios.de'
+        self.canvas.setCreator(creatorString)
 
     def restrictDrawing(self, xmin, ymin, xmax, ymax):
         self.canvas.saveState()
@@ -171,14 +173,39 @@ class ReportlabCanvas(Canvas):
             
     # draw a polygon
     # x and y are lists of point coordinates
-    def drawPolygon(self, xs, ys, contourColour, fillColour):
-        print 'Error: method drawPolygon not implemented in backend'
+    def drawPolygon(self, x, y, style):
+        self.setDrawingStyle(style)
+        list = reduce(lambda x,y: x+y, [ [x[i], y[i]] for i in range(len(x)) ] )
+        fillCol = convertColour(style.fillColour)
+        strokeCol = convertColour(style.lineColour)
+        thickness = getThickness(style)
+        p = Polygon(list,
+                    strokeColor=strokeCol,
+                    fillColor=fillCol,
+                    strokeWidth=thickness,
+                    strokeLineJoin=1)
+        d = Drawing(self.width, self.height)
+        d.add(p)
+        renderPDF.draw(d, self.canvas, 0, 0)
 
-    # draw a regular polygon
-    # x and y are centre coordinates
-    def drawRegularPolygon(self, x, y, nEdges, radius,
-                           contourColour, fillColour):
-        print 'Error: method drawRegularPolygon not implemented in backend'
+    # draw several polygons with the same style
+    # xs and ys are lists of lists of point coordinates
+    def drawPolygons(self, xs, ys, style):
+        self.setDrawingStyle(style)
+        d = Drawing(self.width, self.height)
+        for x, y in zip(xs, ys):
+            list = reduce(lambda x,y: x+y,
+                          [ [x[i], y[i]] for i in range(len(x)) ] )
+            fillCol = convertColour(style.fillColour)
+            strokeCol = convertColour(style.lineColour)
+            thickness = getThickness(style)
+            p = Polygon(list,
+                        strokeColor=strokeCol,
+                        fillColor=fillCol,
+                        strokeWidth=thickness,
+                        strokeLineJoin=1)
+            d.add(p)
+            renderPDF.draw(d, self.canvas, 0, 0)
 
     # draw a text label with top left corner at x, y
     def drawText(self, label, x, y,
@@ -205,13 +232,11 @@ class ReportlabCanvas(Canvas):
     # this version allows to specify a reference point and an angle
     def drawFancyText(self, label, x, y,
                       font, foregroundColour, backgroundColour,
-                      angle=None,
+                      angle=0,
                       referencePoint='northwest'):
 #         styl = style.DrawingStyle(colours.funkypink,
 #                                   colours.funkypink)
 #         self.drawCircle(x, y, 3, styl)
-        if angle is None:
-            angle = 0
         self.setWritingStyle(font, foregroundColour, backgroundColour)
         # first we write the text without printing it so that we can measure it
         previewText = self.canvas.beginText()

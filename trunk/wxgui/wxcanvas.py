@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 1st 2011 by Fabien Tricoire
+# Last modified: August 7th 2011 by Fabien Tricoire
 #
 import sys
 from math import *
@@ -224,15 +224,18 @@ class WxCanvas(canvas.Canvas):
         
     # draw a polygon
     # x and y are lists of point coordinates
-    def drawPolygon(self, x, y, style):
+    def drawPolygon(self, xs, ys, style):
         self.setDrawingStyle(style)
-        print 'Error: method drawPolygon not implemented in backend'
+        points = [ (x, self.height-y) for x, y in zip(xs, ys) ]
+        self.dc.DrawPolygon(points)
 
-    # draw a regular polygon
-    # x and y are center coordinates
-    def drawRegularPolygon(self, x, y, nEdges, radius, style):
+    # draw several polygons with the same style
+    # x and y are lists of lists of point coordinates
+    def drawPolygons(self, xss, yss, style):
         self.setDrawingStyle(style)
-        print 'Error: method drawRegularPolygon not implemented in backend'
+        for xs, ys in zip(xss, yss):
+            points = [ (x, self.height-y) for x, y in zip(xs, ys) ]
+            self.dc.DrawPolygon(points)
 
     # draw a bitmap using the given north-west corner
     def drawBitmap(self, bitmap, NWcorner):
@@ -312,7 +315,7 @@ class WxThumbnailCanvas(WxCanvas):
     
     def drawPolygon(self, x, y, style):
         pass
-    def drawRegularPolygon(self, x, y, nEdges, radius, style):
+    def drawPolygons(self, x, y, style):
         pass
     def drawBitmap(self, bitmap, NWcorner):
         pass

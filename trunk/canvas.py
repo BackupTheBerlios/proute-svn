@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 1st 2011 by Fabien Tricoire
+# Last modified: August 7th 2011 by Fabien Tricoire
 #
 import util
 
@@ -9,6 +9,9 @@ class Canvas:
     """
     Abstract class: should be derived by backend classes.
     Most methods here should be overloaded by the backend version.
+    High-level methods such as drawCentredPolygon shouldn't though.
+    Rule of thumb: if the method just prints an error message, it should be
+    overloaded.
 
     """
     def __init__(self, width, height):
@@ -67,14 +70,40 @@ class Canvas:
         print 'Error: method drawSpline not implemented in backend'
         
     # draw a polygon
-    # x and y are lists of point coordinates
+    # xs and ys are lists of point coordinates
     def drawPolygon(self, xs, ys, style):
         print 'Error: method drawPolygon not implemented in backend'
 
-    # draw a regular polygon
+    # draw several times a polygon with the same style
+    # xss and yss are lists of lists of point coordinates
+    def drawPolygons(self, xss, yss, style):
+        print 'Error: method drawPolygons not implemented in backend'
+
+    # draw a centred polygon
     # x and y are center coordinates
-    def drawRegularPolygon(self, x, y, nEdges, radius, style):
-        print 'Error: method drawRegularPolygon not implemented in backend'
+    def drawCentredPolygon(self, polygon, x, y, radius, style, angle=0):
+        points = polygon.getTransformedPoints(radius, angle)
+        xs = []
+        ys = []
+        for a, b in points:
+            xs.append(a + x)
+            ys.append(b + y)
+        self.drawPolygon(xs, ys, style)
+
+    # draw several times a centred polygon with the same style
+    def drawCentredPolygons(self, polygon, xs, ys, radius, style, angle=0):
+        points = polygon.getTransformedPoints(radius, angle)
+        xss = []
+        yss = []
+        for x, y in zip(xs, ys):
+            xs = []
+            ys = []
+            for a, b in points:
+                xs.append(a + x)
+                ys.append(b + y)
+            xss.append(xs)
+            yss.append(ys)
+        self.drawPolygons(xss, yss, style)
 
     # draw a text label with top left corner at x, y
     def drawText(self, label, x, y,
