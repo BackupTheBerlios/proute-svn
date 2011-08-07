@@ -17,6 +17,17 @@ def postStyleSheetUpdateEvent(object):
     event = StyleSheetUpdateEvent(styleSheetUpdateEventType, object.GetId())
     object.GetEventHandler().ProcessEvent(event)
 
+# style update: whenever a refresh of the style edit tools is required
+styleUpdateEventType = wx.NewEventType()
+EVT_STYLE_UPDATE = wx.PyEventBinder(styleUpdateEventType, 1)
+class StyleUpdateEvent(wx.PyCommandEvent):
+    def __init__(self, eventType, id):
+        wx.PyCommandEvent.__init__(self, eventType, id)
+# post an event to signal an update of the style
+def postStyleUpdateEvent(object):
+    event = StyleUpdateEvent(styleUpdateEventType, object.GetId())
+    object.GetEventHandler().ProcessEvent(event)
+
 # quit event: when the user wants to quit
 quitEventType = wx.NewEventType()
 EVT_QUIT = wx.PyEventBinder(quitEventType, 1)

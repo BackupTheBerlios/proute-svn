@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: July 30th 2011 by Fabien Tricoire
+# Last modified: August 7th 2011 by Fabien Tricoire
 #
 import sys
 
@@ -40,6 +40,7 @@ class StyleEditor(wx.Panel):
     def setEditable(self, styleToEdit):
         # delete the last edited style if there is one
         self.gridSizer.Clear(True)
+        self.activeTools = []
         if styleToEdit is None:
             return
         # loop over customizable parameters, i.e. those with an entry in
@@ -50,11 +51,18 @@ class StyleEditor(wx.Panel):
             # now add its editable value
             editTool = self.getStyleEditTool(styleToEdit, parameter)
             self.gridSizer.Add(editTool)
-#         self.sw.Fit()
+            self.activeTools.append(editTool)
+        #
+        self.sw.Fit()
 #         self.gridSizer.FitInside(self.sw)
         self.SendSizeEvent()
 #         self.Parent.SendSizeEvent()
 
+    def update(self):
+        for t in self.activeTools:
+            t.update()
+        
+        
     def getStyleEditTool(self, styleToEdit, parameterName):
         classFromString = {
             'boolean': setool.BoolStyleEditTool,
@@ -77,4 +85,3 @@ class StyleEditor(wx.Panel):
             paramName = styleToEdit.parameterValue[parameterName]
             return wx.StaticText(self.sw,
                                  label=str(paramName))
-            

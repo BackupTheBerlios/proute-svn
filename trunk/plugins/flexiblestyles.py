@@ -1,11 +1,12 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 6th 2011 by Fabien Tricoire
+# Last modified: August 7th 2011 by Fabien Tricoire
 #
 from style import *
 
 import colours
+import shapes
 
 # This module contains flexible, general-purpose styles: they can be reused for
 # different purposes and are not restrictive when it comes to required
@@ -275,3 +276,139 @@ class NodeListAttributeAsRectanglesDisplayer(NodeAttributeAsRectangleDisplayer):
                                  self.parameterValue['colours'][i])
             canvas.drawRectangles(allX, allY, allW, allH, style,
                                   referencePoint='southeast')
+
+# Display a rectangle proportional to the demand for each node
+class FlexibleNodeDisplayer( Style ):
+    description = 'customizable shape for nodes'
+    # used multiple times
+    offsetInfo = IntParameterInfo(-20, 20)
+    parameterInfo = {
+        'x offset': offsetInfo,
+        'y offset': offsetInfo,
+        'min. radius': IntParameterInfo(2, 20),
+        'max. radius': IntParameterInfo(5, 200),
+        'fill colour': ColourParameterInfo(),
+        'contour colour': ColourParameterInfo(),
+        'shape type': EnumerationParameterInfo( [ 'polygon', 'star' ] ),
+        'number of edges': IntParameterInfo(3, 100),
+        'angle': FloatParameterInfo(-180.0, 180.0),
+        'radius by attribute': BoolParameterInfo(),
+        'filter active': BoolParameterInfo(),
+        }
+    defaultValue = {
+        'x offset': 0,
+        'y offset': 0,
+        'min. radius': 3,
+        'max. radius': 10,
+        'fill colour': colours.darkpurple,
+        'contour colour': colours.black,
+        'shape type': 'polygon',
+        'number of edges': 3,
+        'angle': 0,
+        'radius by attribute': False,
+        'radius attribute': 'index',
+        'filter active': False,
+        'filter attribute': 'is depot',
+        'filter value': 'True',
+        }
+    def __init__(self, parameterValue={}):
+        Style.__init__(self, parameterValue)
+        self.minValue = None
+    #
+    def setParameter(self, parameterName, parameterValue):
+        Style.setParameter(self, parameterName, parameterValue)
+        if parameterName == 'max. radius' and \
+                parameterValue < self.parameterValue['min. radius']:
+            Style.setParameter(self, 'min. radius', parameterValue)
+        if parameterName == 'min. radius' and \
+                parameterValue > self.parameterValue['max. radius']:
+            Style.setParameter(self, 'max. radius', parameterValue)
+        if parameterName == 'radius attribute' \
+                or parameterName == 'min. radius' \
+                or parameterName == 'max. radius':
+            self.minValue = None
+        # in case we change the attribute on which the filter is based,
+        # we must compute the list of possible values for this attribute
+        if parameterName == 'filter attribute':
+            del self.parameterInfo['filter value']
+            del self.parameterValue['filter value']
+    #
+    def paint(self, inputData, solutionData,
+              canvas, convertX, convertY,
+              nodePredicate, routePredicate, arcPredicate,
+              boundingBox):
+        # first-time-only execution
+        if not 'radius attribute' in self.parameterInfo:
+            def acceptable(x):
+                return (isinstance(x, int) or isinstance(x, float)) and \
+                    not isinstance(x, bool)
+            self.parameterInfo['radius attribute'] = \
+                NodeAttributeParameterInfo(inputData, acceptable)
+#         # only perform painting if the selected attributes are available
+#         if not self.parameterValue['attribute'] in inputData.nodeAttributes:
+#             return
+        if not 'filter attribute' in self.parameterInfo:
+            acceptable = \
+                lambda x: isinstance(x, bool) or isinstance(x, str)
+            self.parameterInfo['filter attribute'] = \
+                NodeAttributeParameterInfo(inputData, acceptable)
+        if not 'filter value' in self.parameterInfo:
+            rawValues = set ( [ node[self.parameterValue['filter attribute']]
+                                for node in inputData.nodes ] )
+            finalValues = [ x if isinstance(x, str) else str(x)
+                            for x in rawValues ]
+            self.parameterInfo['filter value'] = \
+                EnumerationParameterInfo(finalValues)
+            self.parameterValue['filter value'] = finalValues[0]
+        # compute min and max demand if required
+        if self.minValue is None:
+            values = [ node[self.parameterValue['radius attribute']]
+                        for node in inputData.nodes ]
+            self.minValue, self.maxValue = min(values), max(values)
+            self.computeRadius =\
+                util.intervalMapping(self.minValue, self.maxValue,
+                                     self.parameterValue['min. radius'],
+                                     self.parameterValue['max. radius'])
+        # second only continue if an attribute is specified
+        allX, allY, allR = [], [], []
+        for node in inputData.nodes:
+            if nodePredicate and not nodePredicate(node):
+                continue
+            # only display nodes matching the filter
+            elif self.parameterValue['filter active'] and \
+                    'filter value' in self.parameterValue and \
+                    str(node[self.parameterValue['filter attribute']]) != \
+                    self.parameterValue['filter value']:
+                continue
+            else:
+                allX.append(convertX(node['x']) +
+                            self.parameterValue['x offset'])
+                allY.append(convertY(node['y']) +
+                            self.parameterValue['y offset'])
+                # now we must compute the apropriate radius
+                if self.parameterValue['radius by attribute']:
+                    allR.append(self.computeRadius( node[\
+                                self.parameterValue['radius attribute']] ) )
+        # determine shape to use
+        if self.parameterValue['shape type'] == 'polygon':
+            shape = shapes.makeRegularPolygon(\
+                self.parameterValue['number of edges'] )
+        elif self.parameterValue['shape type'] == 'star':
+            shape = shapes.makeStar(\
+                self.parameterValue['number of edges'] )
+        else:
+            return
+        # Now we can draw the polygons
+        style = DrawingStyle(self.parameterValue['contour colour'],
+                             self.parameterValue['fill colour'])
+        # In case they all have the same radius, we can use the faster method
+        if not self.parameterValue['radius by attribute']:
+            canvas.drawCentredPolygons(shape, allX, allY,
+                                       self.parameterValue['max. radius'],
+                                       style,
+                                       self.parameterValue['angle'])
+        # otherwise we have to display each polygon separately
+        else:
+            for x, y, r in zip(allX, allY, allR):
+                canvas.drawCentredPolygon(shape, x, y, r, style,
+                                          self.parameterValue['angle'])

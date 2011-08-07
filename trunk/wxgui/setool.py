@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 6th 2011 by Fabien Tricoire
+# Last modified: August 7th 2011 by Fabien Tricoire
 #
 import os
 
@@ -28,6 +28,11 @@ class StyleEditTool:
 #         print('setting parameter', self.parameterName,
 #               'to value', self.getValue())
         events.postStyleSheetUpdateEvent(self)
+        events.postStyleUpdateEvent(self)
+
+    # should be overloaded by some subclasses
+    def update(self):
+        pass
 
 class BoolStyleEditTool(StyleEditTool, wx.CheckBox):
     def __init__(self, parent, styleToEdit, paramName):
@@ -98,6 +103,15 @@ class ChoiceListStyleEditTool(StyleEditTool, wx.Choice):
     #
     def getValue(self):
         return self.GetStringSelection()
+    #
+    def update(self):
+        newValues = \
+            self.styleToEdit.parameterInfo[self.parameterName].possibleValues
+        if self.GetItems() != newValues:
+            self.SetItems(newValues)
+        if self.parameterName in self.styleToEdit.parameterValue:
+            self.SetSelection(self.FindString(\
+                    self.styleToEdit.parameterValue[self.parameterName]))
         
 class FileNameStyleEditTool(StyleEditTool, wx.Button):
     def __init__(self, parent, styleToEdit, paramName):

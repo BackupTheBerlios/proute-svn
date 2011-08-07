@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 6th 2011 by Fabien Tricoire
+# Last modified: August 7th 2011 by Fabien Tricoire
 #
 import wx
 
@@ -103,6 +103,8 @@ class StyleSheetEditor(wx.Panel):
         self.SetSizer(sizer)
         # update the stylesheet in case of (un)check event
         self.styleCheckList.Bind(wx.EVT_CHECKLISTBOX, self.updateStyleSheet)
+        # update the style edition tool if needed
+        self.styleControl.Bind(events.EVT_STYLE_UPDATE, self.onStyleUpdate)
         # update the buttons in case an element is selected in the list
         self.styleCheckList.Bind(wx.EVT_LISTBOX, self.onCheckListSelection)
         # remove the selected element when the "remove" button is clicked
@@ -148,6 +150,12 @@ class StyleSheetEditor(wx.Panel):
         events.postStyleSheetUpdateEvent(self)
 #         event.SetEventObject(self)
 #         event.Skip()
+
+    def onStyleUpdate(self, event):
+        index = self.styleCheckList.GetSelection()
+        self.styleControl.update()
+#         self.GetParent().SetupScrolling()
+        
 
     def onCheckListSelection(self, event):
         index = event.GetSelection()

@@ -47,10 +47,31 @@ def makeRegularPolygon(nEdges):
                [ i * 360.0 / nEdges for i in range(nEdges) ] ]
     return CentredPolygon(points)
 
+# generate a star!
+def makeStar(nEdges):
+    # for the inner points we take a regular polygon starting with a
+    # horizontal edge
+    startingAngle = 180.0 / nEdges
+    innerPoints = [ ( - sin( (startingAngle + angle) * pi / 180.0),
+                        cos( (startingAngle + angle) * pi / 180.0 ) )
+                    for angle in
+                    [ i * (360.0 / nEdges) for i in range(nEdges) ] ]
+    # for the outer points: regular polygon but larger
+    factor = 2.5
+    outerPoints = [ ( -factor * sin( angle * pi / 180.0),
+                       factor * cos ( angle * pi / 180.0 ) )
+                    for angle in
+                    [ i * (360.0 / nEdges) for i in range(nEdges) ] ]
+    points = []
+    for i, o in zip(innerPoints, outerPoints):
+        points.append(o)
+        points.append(i)
+    return CentredPolygon(points)
+
 # more intuitive this way
 square = CentredPolygon( [ (1, 1), (1, -1), (-1, -1), (-1, 1) ] )
 # standard polygons...
-isoTriangle = makeRegularPolygon(3)
+triangle = isoTriangle = makeRegularPolygon(3)
 diamond = makeRegularPolygon(4)
 pentagon = makeRegularPolygon(5)
 hexagon = makeRegularPolygon(6)
@@ -65,7 +86,7 @@ tetradecagon = makeRegularPolygon(14)
 pentadecagon = makeRegularPolygon(15)
 icosagon = makeRegularPolygon(20)
 
-# OMG Satan!!!
+# OMG Satan!!1
 pentagram = CentredPolygon( [ pentagon.points[0],
                               pentagon.points[2],
                               pentagon.points[4],
