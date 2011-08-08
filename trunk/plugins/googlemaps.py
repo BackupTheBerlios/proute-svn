@@ -9,6 +9,7 @@ import os
 import urllib
 import StringIO
 import json
+from math import *
 
 import Image
 
@@ -35,8 +36,7 @@ class GoogleMapDisplayer( Style ):
     scalingMethod = Image.BICUBIC
     # xNW and yNW are the coordinates of the north-west corner point of the map
     # xSE and ySE are the coordinates of the south-east corner point of the map
-    def __init__(self, parameterValue={}):
-        Style.__init__(self, parameterValue)
+    def initialise(self):
         # initialize the bitmap to a nil value to retrieve it the first time
         # we need it
         self.bitmap = None
@@ -70,7 +70,8 @@ class GoogleMapDisplayer( Style ):
             # finally we can paint the bitmap!
             canvas.drawBitmap(newBitmap, (convertX(boundingBox[0]),
                                           convertY(boundingBox[3])))
-    #
+
+    # download the map and store it
     def getGoogleMap(self, inputData, convertX, convertY):
         # bound the map we want to get: take a wide interval around the
         # input data coordinate bounds
@@ -113,6 +114,7 @@ class GoogleMapDisplayer( Style ):
 # This version takes a higher quality map
 class GoogleBetterMapDisplayer(GoogleMapDisplayer):
     scalingMethod = Image.LINEAR
+    description = 'Google map, improved quality'
     def getGoogleMap(self, inputData, convertX, convertY):
         # bound the map we want to get: take a wide interval around the
         # input data coordinate bounds
@@ -206,9 +208,9 @@ class GoogleMapsRoutes( basestyles.RouteColourDisplayer ):
             newPaths = [ [ None for j in i ]
                            for i in self.paths]
             self.paths = newPaths
-    def __init__(self, parameterValue={}):
+    def initialise(self):
 #         colours = [ Colour(95, 225, 249), Colour(176, 14, 104) ]
-        basestyles.RouteColourDisplayer.__init__(self, parameterValue)
+        basestyles.RouteColourDisplayer.initialise(self)
         # here we store paths in order to avoid retrieving them several times
         # two-dimensional array in which self.paths[i][j] is a list of 2-uples,
         # each of which represents a point in the path between i and j

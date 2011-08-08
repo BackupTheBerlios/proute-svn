@@ -35,8 +35,7 @@ class BackgroundBitmapDisplayer( Style ):
         'file name': None,
         'coord style': 'bitmapSize',
         }
-    def __init__(self, parameterValue={}):
-        Style.__init__(self, parameterValue)
+    def initialise(self):
         # set the file name if given
         if not self.parameterValue['file name'] is None:
             self.bitmap = Image.open(self.parameterValue['file name'])

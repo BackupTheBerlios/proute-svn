@@ -186,8 +186,7 @@ class NodeDemandAndCapacityDisplayer( Style ):
         'capacity contour': Colour(0, 0, 0, 255),
         'x offset': -5,
         }
-    def __init__(self, parameterValue={}):
-        Style.__init__(self, parameterValue)
+    def initialise(self):
         self.requiredNodeAttributes += [ 'average demand', 'capacity' ]
         self.minCapacity = False
         self.maxCapacity = False
@@ -240,8 +239,7 @@ class CTPCoverageDisplayer( Style ):
         'thickness': 2,
         'full coverage arc colour': colours.applegreen,
         }
-    def __init__(self, parameterValue={}):
-        Style.__init__(self, parameterValue)
+    def initialise(self):
         self.requiredSolutionNodeAttributes += ['covered by']
         self.requiredGlobalAttributes += ['dmax1', 'dmax2', 'distance matrix']
     #

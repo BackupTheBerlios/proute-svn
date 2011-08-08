@@ -5,7 +5,7 @@
 #
 import os
 import string
-import math
+from math import *
 
 import config
 import style
@@ -140,9 +140,29 @@ class StyleSheet(object):
                                                               ymin, ymax,
                                                               inputData,
                                                               padding)
-        convertX = util.intervalMapping(self.xmin, self.xmax, xmin, xmax)
-        convertY = util.intervalMapping(self.ymin, self.ymax, ymin, ymax)
+#         convertX = util.intervalMapping(self.xmin, self.xmax, xmin, xmax)
+#         convertY = util.intervalMapping(self.ymin, self.ymax, ymin, ymax)
+
+        # new version: projection is integrated
+
+        # no projection
+        projX = lambda x: x
+        projY = lambda y: y
+
+#         # Mercator cylindric projection
+#         projX = lambda x: x
+#         projY = lambda y: log( (1 + sin(y * pi / 180.0)) / cos(y * pi / 180.0))
+
+        # project first, then convert the projected value
+        tmpX = util.intervalMapping(projX(self.xmin), projX(self.xmax),
+                                    xmin, xmax)
+        tmpY = util.intervalMapping(projY(self.ymin), projY(self.ymax),
+                                    ymin, ymax)
+        convertX = lambda x: tmpX(projX(x))
+        convertY = lambda y: tmpY(projY(y))
+
         return convertX, convertY
+        
 
     def getReverseCoordMapping(self, canvas, inputData):
         # compute bounding box for drawing
@@ -216,7 +236,7 @@ class StyleSheet(object):
                 # approximate a square grid
                 wPrime = 1.0 / inputData.heightOverWidth
                 self.nColumnsInGrid = \
-                    int(math.ceil(math.sqrt(gridSize * wPrime) / wPrime))
+                    int(ceil(sqrt(gridSize * wPrime) / wPrime))
             self.nRowsInGrid = 1 + (gridSize-1) / self.nColumnsInGrid
             # compute number of rows from numberof columns
             nColumns = self.nColumnsInGrid

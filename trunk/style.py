@@ -151,6 +151,12 @@ class Style( object ):
         # now we can use the specified values
         for key in parameterValue:
             self.parameterValue[key] = parameterValue[key]
+        # finally, load any additional information defined by the style
+        self.initialise()
+
+    # should be overloaded
+    def initialise(self):
+        pass
 
     def __repr__(self):
         return self.__module__ + '.' + self.__class__.__name__ + \

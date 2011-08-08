@@ -31,8 +31,7 @@ class TimeWindowDisplayer(Style):
         'background colour': colours.white,
         'contour colour': colours.black,
         }
-    def __init__(self, parameterValue={}):
-        Style.__init__(self, parameterValue)
+    def initialise(self):
         self.requiredNodeAttributes += [ 'release time', 'due date' ]
         # this can only be computed once data is known
         self.timeToX = None

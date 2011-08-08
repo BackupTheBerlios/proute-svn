@@ -143,8 +143,7 @@ class NodeDemandDisplayer( Style ):
         'hide unused nodes': False,
         }
     #
-    def __init__(self, parameterValue={}):
-        Style.__init__(self, parameterValue)
+    def initialise(self):
         self.requiredNodeAttributes += [ 'demand']
         self.minDemand = False
         self.maxDemand = False
@@ -268,8 +267,7 @@ class RouteColourDisplayer( Style ):
         if parameterName == 'attribute':
             self.values = None
             
-    def __init__(self, parameterValue={}):
-        Style.__init__(self, parameterValue)
+    def initialise(self):
         # lets paint() know that colours have yet to be allocated
         self.values = None
     #

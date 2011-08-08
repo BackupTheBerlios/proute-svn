@@ -43,8 +43,7 @@ class FlexibleSubInterval(Style):
         'left bound attribute': 'release time',
         'right bound attribute': 'due date',
         }
-    def __init__(self, parameterValue={}):
-        Style.__init__(self, parameterValue)
+    def initialise(self):
         # parameter info for these needs to be computed later when the data
         # format is known
         self.timeToX = None
@@ -155,8 +154,7 @@ class NodeAttributeAsRectangleDisplayer( Style ):
         'colour': colours.darkorange,
         'attribute': 'demand',
         }
-    def __init__(self, parameterValue={}):
-        Style.__init__(self, parameterValue)
+    def initialise(self):
         self.minValue = None
     #
     def setParameter(self, parameterName, parameterValue):
