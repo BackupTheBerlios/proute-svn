@@ -61,6 +61,8 @@ class StyleSheet(object):
         # string format to display as title for each cell
         # %a = attribute, %v = value
         self.cellTitleFormat = cellTitleFormat
+#         # are we using a specific projection?
+#         self.projection = None
         # load default parameters supplied by the derivated class
         if styles is None:
             self.loadDefault()
@@ -140,29 +142,29 @@ class StyleSheet(object):
                                                               ymin, ymax,
                                                               inputData,
                                                               padding)
-#         convertX = util.intervalMapping(self.xmin, self.xmax, xmin, xmax)
-#         convertY = util.intervalMapping(self.ymin, self.ymax, ymin, ymax)
-
-        # new version: projection is integrated
-
-        # no projection
-        projX = lambda x: x
-        projY = lambda y: y
-
-#         # Mercator cylindric projection
-#         projX = lambda x: x
-#         projY = lambda y: log( (1 + sin(y * pi / 180.0)) / cos(y * pi / 180.0))
-
-        # project first, then convert the projected value
-        tmpX = util.intervalMapping(projX(self.xmin), projX(self.xmax),
-                                    xmin, xmax)
-        tmpY = util.intervalMapping(projY(self.ymin), projY(self.ymax),
-                                    ymin, ymax)
-        convertX = lambda x: tmpX(projX(x))
-        convertY = lambda y: tmpY(projY(y))
-
+        convertX = util.intervalMapping(self.xmin, self.xmax, xmin, xmax)
+        convertY = util.intervalMapping(self.ymin, self.ymax, ymin, ymax)
+#         # new version: projection is integrated
+#         if self.projection is None:
+#             convertX = util.intervalMapping(self.xmin, self.xmax, xmin, xmax)
+#             convertY = util.intervalMapping(self.ymin, self.ymax, ymin, ymax)
+#         else:
+#             if projection == 'Mercator':
+#                 # Mercator cylindric projection
+#                 projX = lambda x: x
+#                 projY = lambda y: \
+#                     log( (1 + sin(y * pi / 180.0)) / cos(y * pi / 180.0))
+#             else:
+#                 pass
+#             # project first, then convert the projected value
+#             tmpX = util.intervalMapping(projX(self.xmin), projX(self.xmax),
+#                                         xmin, xmax)
+#             tmpY = util.intervalMapping(projY(self.ymin), projY(self.ymax),
+#                                         ymin, ymax)
+#             convertX = lambda x: tmpX(projX(x))
+#             convertY = lambda y: tmpY(projY(y))
+        # in any case, return the transformations
         return convertX, convertY
-        
 
     def getReverseCoordMapping(self, canvas, inputData):
         # compute bounding box for drawing

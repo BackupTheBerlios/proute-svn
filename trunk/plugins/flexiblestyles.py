@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 7th 2011 by Fabien Tricoire
+# Last modified: August 8th 2011 by Fabien Tricoire
 #
 from style import *
 

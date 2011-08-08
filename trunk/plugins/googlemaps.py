@@ -212,7 +212,7 @@ class GoogleMapsRoutes( basestyles.RouteColourDisplayer ):
 #         colours = [ Colour(95, 225, 249), Colour(176, 14, 104) ]
         basestyles.RouteColourDisplayer.initialise(self)
         # here we store paths in order to avoid retrieving them several times
-        # two-dimensional array in which self.paths[i][j] is a list of 2-uples,
+        # two-dimensional array in which self.paths[i][j] is a list of 2-tuples,
         # each of which represents a point in the path between i and j
         self.paths = None
     #
