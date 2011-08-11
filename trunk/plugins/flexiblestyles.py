@@ -287,7 +287,12 @@ class FlexibleNodeDisplayer( Style ):
         'max. radius': IntParameterInfo(5, 200),
         'fill colour': ColourParameterInfo(),
         'contour colour': ColourParameterInfo(),
-        'shape type': EnumerationParameterInfo( [ 'polygon', 'star' ] ),
+        'shape type': EnumerationParameterInfo( [ 'polygon',
+                                                  'regular star',
+                                                  'sharp star',
+                                                  'fat star',
+                                                  'very fat star',
+                                                  ] ),
         'number of edges': IntParameterInfo(3, 100),
         'angle': FloatParameterInfo(-180.0, 180.0),
         'radius by attribute': BoolParameterInfo(),
@@ -394,9 +399,18 @@ class FlexibleNodeDisplayer( Style ):
         if self.parameterValue['shape type'] == 'polygon':
             shape = shapes.makeRegularPolygon(\
                 self.parameterValue['number of edges'] )
-        elif self.parameterValue['shape type'] == 'star':
+        elif self.parameterValue['shape type'] == 'regular star':
             shape = shapes.makeStar(\
                 self.parameterValue['number of edges'] )
+        elif self.parameterValue['shape type'] == 'sharp star':
+            shape = shapes.makeStar(\
+                self.parameterValue['number of edges'], 3 )
+        elif self.parameterValue['shape type'] == 'fat star':
+            shape = shapes.makeStar(\
+                self.parameterValue['number of edges'], 2 )
+        elif self.parameterValue['shape type'] == 'very fat star':
+            shape = shapes.makeStar(\
+                self.parameterValue['number of edges'], 1.5 )
         else:
             return
         # Now we can draw the polygons

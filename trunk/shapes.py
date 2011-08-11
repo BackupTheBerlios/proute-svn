@@ -48,7 +48,7 @@ def makeRegularPolygon(nEdges):
     return CentredPolygon(points)
 
 # generate a star!
-def makeStar(nEdges):
+def makeStar(nEdges, factor=2.5):
     # for the inner points we take a regular polygon starting with a
     # horizontal edge
     startingAngle = 180.0 / nEdges
@@ -57,7 +57,6 @@ def makeStar(nEdges):
                     for angle in
                     [ i * (360.0 / nEdges) for i in range(nEdges) ] ]
     # for the outer points: regular polygon but larger
-    factor = 2.5
     outerPoints = [ ( -factor * sin( angle * pi / 180.0),
                        factor * cos ( angle * pi / 180.0 ) )
                     for angle in

@@ -94,6 +94,7 @@ class GoogleMapDisplayer( Style ):
         # finally we add 1 zoom level since we will take a 512x512 picture i.e.
         # four google maps tiles instead of 1
         zoomLevel += 1
+        print mapWidth, mapHeight
         # now that we have the optimal zoom level we can compute the coordinates
         # of the top left corner
         self.xNW = self.centerX - mapWidth / 2.0
@@ -109,7 +110,9 @@ class GoogleMapDisplayer( Style ):
 #         print 'built url: ', url
         data = cache.get(url)
         self.bitmap = Image.open(data)
-#         self.bitmap.show()
+        print self.xNW, self.xSE, self.ySE, self.yNW
+        print inputData.xmin, inputData.xmax, inputData.ymin, inputData.ymax
+        self.bitmap.show()
 
 # This version takes a higher quality map
 class GoogleBetterMapDisplayer(GoogleMapDisplayer):
