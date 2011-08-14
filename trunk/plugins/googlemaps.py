@@ -112,7 +112,7 @@ class GoogleMapDisplayer( Style ):
         self.bitmap = Image.open(data)
         print self.xNW, self.xSE, self.ySE, self.yNW
         print inputData.xmin, inputData.xmax, inputData.ymin, inputData.ymax
-        self.bitmap.show()
+#         self.bitmap.show()
 
 # This version takes a higher quality map
 class GoogleBetterMapDisplayer(GoogleMapDisplayer):
