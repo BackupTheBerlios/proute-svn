@@ -74,11 +74,20 @@ class VrpInputData(object):
             print 'Exception while loading a file:', e
             raise vrpexceptions.VrpInputFileFormatException(self.problemType,
                                                             fName)
+        # generate missing information
+        self.generateMissingData()
         # we must update the bounding box of all nodes we just read
         self.updateBoundingBox()
         # we also create a map to locate nodes
         self.createMap()
 
+    # complete missing data
+    def generateMissingData(self):
+        for node in self.nodes:
+            if not 'is depot' in node:
+                node['is depot'] = False
+
+        
     # update bounding box with all node coordinates
     def updateBoundingBox(self):
         for node in self.nodes:
