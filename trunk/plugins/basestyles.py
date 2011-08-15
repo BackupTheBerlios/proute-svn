@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 8th 2011 by Fabien Tricoire
+# Last modified: August 16th 2011 by Fabien Tricoire
 #
 from style import *
 
@@ -59,18 +59,18 @@ class NodeDisplayer( Style ):
                 nodeX.append(convertX(node['x']))
                 nodeY.append(convertY(node['y']))
                 nodeR.append(self.parameterValue['node size'])
-        # draw all depots
-        style = DrawingStyle(self.parameterValue['depot contour'],
-                             self.parameterValue['depot colour'],
-                             lineThickness = \
-                                 self.parameterValue['depot contour thickness'])
-        canvas.drawRectangles(depotX, depotY, depotW, depotW, style)
         # draw all non-depots
         style = DrawingStyle(self.parameterValue['node contour'],
                              self.parameterValue['node colour'],
                              lineThickness = \
                                  self.parameterValue['node contour thickness'])
         canvas.drawCircles(nodeX, nodeY, nodeR, style)
+        # draw all depots
+        style = DrawingStyle(self.parameterValue['depot contour'],
+                             self.parameterValue['depot colour'],
+                             lineThickness = \
+                                 self.parameterValue['depot contour thickness'])
+        canvas.drawRectangles(depotX, depotY, depotW, depotW, style)
         
 # Display a label for each node
 class NodeLabelDisplayer( Style ):

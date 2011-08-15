@@ -71,16 +71,115 @@ class VRXInputData(vrpdata.VrpInputData):
                 elif section == 'routes':
                     pass
                 elif section == 'requests':
-                    self.nodes[self.locationIDToIndex[tokens[0]]]['is depot'] =\
+                    self.nodes[self.locationIDToIndex[tokens[1]]]['is depot'] =\
                         False
                 elif section == 'request times':
                     pass
-            
+
+# load a solution file produced by indigo
 class VRXSolutionData(vrpdata.VrpSolutionData):
     problemType = 'VRX'
+    solutionType = 'indigo'
     # load a VRX solution
     def loadData(self, fName, vrpData):
-        # add vehicle load information
+        # route attributes in a solution file produced by indigo
+        self.routeAttributes += [ 'vehicle', 'vehicle type', 'ID' ]
+        # it is possible to visit several times the same node for different
+        # requests
+        self.routeNodeAttributes += [ 'request' ]
+        # all routes in the solution (lists of indices)
+        self.routes = []
+        thisRoute = None
+        stage = None
+        # process each line
+        for rawLine in file(fName):
+            # remove the comments
+            line = rawLine[:rawLine.find('#')].rstrip()
+            tokens = line.split()
+            if len(tokens) < 2:
+                continue
+#             print tokens
+            # case of a new vehicle
+            if tokens[0] == 'Vehicle':
+                currentVehicle = tokens[1]
+            # case of a new route for this vehicle
+            elif tokens[0] == 'Route':
+                currentRoute = tokens[1]
+            elif tokens[0] == 'Cost':
+                currentCost = tokens[1]
+            elif tokens[0] == 'Start:':
+                currentStartTime = string.atoi(tokens[1])
+            elif tokens[0] == 'Finish:':
+                currentFinishTime = string.atoi(tokens[1])
+            elif tokens[0] == 'Duration:':
+                currentDuration = string.atoi(tokens[1])
+            elif tokens[0] == 'Capacity:':
+                currentCapacity = string.atoi(tokens[1])
+            elif tokens[0] == 'Max' and tokens[1] == 'Load:':
+                currentMaxLoad = string.atoi(tokens[2])
+            # we already read the last route -> add it and exit
+            elif tokens[0] == 'Unassigned' and tokens[1] != 'cost':
+                self.routes.append(thisRoute)
+                return
+            # case of a new route
+            elif tokens[0] == 'Count':
+                stage = 'route'
+                # append previous route if any
+                if not thisRoute is None:
+                    self.routes.apped(thisRoute)
+                # create new route
+                thisRoute = { 'index': len(self.routes),
+                              'ID': currentRoute,
+                              'vehicle': currentVehicle,
+                              'vehicle type': currentVehicle,
+                              'cost': currentCost,
+                              'starting time': currentStartTime,
+                              'finishing time': currentFinishTime,
+                              'duration': currentDuration,
+                              'capacity': currentCapacity,
+                              'max. load': currentMaxLoad,
+                              'node information': [],
+                              }
+                # add fields to route node attributes if they're not there yet
+                for field in tokens[3:]:
+                    if not field in self.routeNodeAttributes:
+                        self.routeNodeAttributes.append(field)
+                # use these fields for reading the route
+                currentFields = tokens
+            # case where we read information for one node
+            elif stage == 'route':
+                # special case: end of the route
+                if tokens[0] == '(End)':
+                    tokens = [ None ]  + tokens
+                thisNode = { 'index': vrpData.locationIDToIndex[tokens[2]],
+                             'request': tokens[1] }
+                if tokens[1] != '(Start)':
+                    for field, value in zip (currentFields[3:], tokens[3:]):
+                        prevField = field
+                        if field == 'Arrive':
+                            thisNode['arrival time'] = string.atoi(value)
+                        elif field == 'LateArr':
+                            thisNode['latest arrival time'] = string.atoi(value)
+                        elif field == 'Wait':
+                            thisNode['waiting time'] = string.atoi(value)
+                        elif field == 'Start':
+                            thisNode['service start'] = string.atoi(value)
+                        elif field == 'Depart':
+                            thisNode['departure time'] = string.atoi(value)
+                        elif field == 'Cumm' and prevField == 'load':
+                            thisNode['load'] = string.atoi(value)
+                        elif field == '':
+                            thisNode[''] = string.atoi(value)
+                # finally add the node to current route
+                thisRoute['node information'].append(thisNode)
+
+# load a .rt file
+class VRXRouteSolutionData(vrpdata.VrpSolutionData):
+    problemType = 'VRX'
+    solutionType = '.rt'
+    # load a VRX solution
+    def loadData(self, fName, vrpData):
+        # route attributes for a .rt file
         self.routeAttributes += [ 'node sequence',
                                   'vehicle', 'vehicle type', 'ID' ]
         # all routes in the solution (lists of indices)
@@ -96,7 +195,6 @@ class VRXSolutionData(vrpdata.VrpSolutionData):
                               'vehicle': tokens[2],
                               'vehicle type': tokens[2][tokens[2].find('-'):],
                               }
-                
                 sequence = tokens[3:]
                 thisRoute['node sequence'] =  [ vrpData.locationIDToIndex[i]
                                                 for i in sequence ]
