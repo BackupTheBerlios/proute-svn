@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 2nd 2011 by Fabien Tricoire
+# Last modified: August 17th 2011 by Fabien Tricoire
 #
 # -*- coding: utf-8 -*-
 # This file contains all routines to encapsulate and read all kinds of VRP data,
@@ -86,7 +86,14 @@ class VrpInputData(object):
         for node in self.nodes:
             if not 'is depot' in node:
                 node['is depot'] = False
-
+        # update node attributes with what's been loaded
+        nodeAttributes = set()
+        for node in self.nodes:
+            for attribute in node:
+                nodeAttributes.add(attribute)
+        for x in nodeAttributes:
+            if not x in self.nodeAttributes:
+                self.nodeAttributes.append(x)
         
     # update bounding box with all node coordinates
     def updateBoundingBox(self):
@@ -223,6 +230,9 @@ class VrpSolutionData(object):
         # in case the route information provided by loadData() is not complete:
         # generate the missing data e.g. generate node sequence from arcs
         self.populateRouteData()
+        # in case the route information provided by loadData() is inconsistent:
+        # remove inconsistencies
+        self.filterRouteData()
         # generate solution information on each node
         self.populateNodeData(vrpData)
 
@@ -257,6 +267,15 @@ class VrpSolutionData(object):
             elif 'arcs' in self.routes[0]:
                 self.populateRouteDataFromArcs()
 
+    # generate missing data from route information
+    def filterRouteData(self):
+        # update node attributes with what's been loaded
+        routeAttributes = set()
+        for route in self.routes:
+            for attribute in route:
+                routeAttributes.add(attribute)
+        self.routeAttributes = [ x for x in routeAttributes ]
+
     # generate node information and arc information from node sequence
     def populateRouteDataFromNodeSequence(self):
         for route in self.routes:
@@ -282,8 +301,8 @@ class VrpSolutionData(object):
             if not 'node sequence' in route:
                 route['node sequence'] = [ x['index']
                                           for x in route['node information'] ]
-            # now the previous method can be used for generating arcs
-            self.populateRouteDataFromNodeSequence()
+        # now the previous method can be used for generating arcs
+        self.populateRouteDataFromNodeSequence()
                 
     # generate node sequence information and node information from arcs
     def populateRouteDataFromArcs(self):

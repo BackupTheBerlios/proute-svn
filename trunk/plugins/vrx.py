@@ -1,7 +1,7 @@
 #
 # File created July 30th 2011 by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 2nd 2011 by Fabien Tricoire
+# Last modified: August 17th 2011 by Fabien Tricoire
 #
 # -*- coding: utf-8 -*-
 
@@ -106,7 +106,7 @@ class VRXSolutionData(vrpdata.VrpSolutionData):
             elif tokens[0] == 'Route':
                 currentRoute = tokens[1]
             elif tokens[0] == 'Cost':
-                currentCost = tokens[1]
+                currentCost = string.atoi(tokens[1])
             elif tokens[0] == 'Start:':
                 currentStartTime = string.atoi(tokens[1])
             elif tokens[0] == 'Finish:':
@@ -140,10 +140,10 @@ class VRXSolutionData(vrpdata.VrpSolutionData):
                               'max. load': currentMaxLoad,
                               'node information': [],
                               }
-                # add fields to route node attributes if they're not there yet
-                for field in tokens[3:]:
-                    if not field in self.routeNodeAttributes:
-                        self.routeNodeAttributes.append(field)
+#                 # add fields to route node attributes if they're not there yet
+#                 for field in tokens[3:]:
+#                     if not field in self.routeNodeAttributes:
+#                         self.routeNodeAttributes.append(field)
                 # use these fields for reading the route
                 currentFields = tokens
             # case where we read information for one node
@@ -168,10 +168,70 @@ class VRXSolutionData(vrpdata.VrpSolutionData):
                             thisNode['departure time'] = string.atoi(value)
                         elif field == 'Cumm' and prevField == 'load':
                             thisNode['load'] = string.atoi(value)
-                        elif field == '':
-                            thisNode[''] = string.atoi(value)
                 # finally add the node to current route
                 thisRoute['node information'].append(thisNode)
+
+# load a solution file produced by indigo
+class VRX_CSVSolutionData(vrpdata.VrpSolutionData):
+    problemType = 'VRX'
+    solutionType = 'csv'
+    # load a VRX solution
+    def loadData(self, fName, vrpData):
+        # route attributes in a solution file produced by indigo
+        self.routeAttributes += [ 'vehicle', 'ID' ]
+        # it is possible to visit several times the same node for different
+        # requests
+        self.routeNodeAttributes += [ 'request' ]
+        # all routes in the solution (lists of indices)
+        self.routes = []
+        thisRoute = None
+        stage = None
+        # process each line
+        for rawLine in file(fName):
+            tokens = rawLine.split(',')
+            if len(tokens) < 2:
+                continue
+#             print tokens
+            # case of a new route
+            if tokens[0] == 'Route':
+                thisRoute = { 'index': len(self.routes),
+                              'ID': tokens[1],
+                              'node information': [],
+                              }
+            # vehicle for this route
+            elif tokens[0] == 'Vehicle':
+                thisRoute['vehicle'] = tokens[1]
+            elif tokens[0] == 'Total' and tokens[1] == 'cost':
+                thisRoute['cost'] = string.atoi(tokens[2])
+            # case of a new route
+            elif len(tokens) > 2 and tokens[2] == 'Customer':
+                stage = 'route'
+                # use these fields for reading the route
+                currentFields = tokens
+            # case where we read information for one node
+            elif stage == 'route':
+                if tokens[2] == '':
+                    continue
+                thisNode = { 'index': vrpData.locationIDToIndex[tokens[3]],
+                             'request': tokens[2] }
+                for field, value in zip (currentFields[4:], tokens[4:]):
+                    if tokens[2] != '(Start)' and tokens[2] != '(End)':
+                        if field == 'Arrive':
+                            thisNode['arrival time'] = value
+                        elif field == 'Wait':
+                            thisNode['waiting time'] = value
+                        elif field == 'Start':
+                            thisNode['service start'] = value
+                        elif field == 'Leave':
+                            thisNode['departure time'] = value
+                        elif field == 'Late-Start':
+                            thisNode['latest arrival time'] = value
+                # finally add the node to current route
+                thisRoute['node information'].append(thisNode)
+                # special case: end of the route
+                if tokens[2] == '(End)':
+                    self.routes.append(thisRoute)
+                    stage = None
 
 # load a .rt file
 class VRXRouteSolutionData(vrpdata.VrpSolutionData):
