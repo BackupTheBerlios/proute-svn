@@ -155,6 +155,9 @@ class PVRPStyleSheet(stylesheet.StyleSheet):
         import basestyles
         # True if aspect ratio should be kept, False otherwise
         self.keepAspectRatio = keepAspectRatio
+        # grid with one cell per day
+        self.grid = True
+        self.gridRouteAttribute = 'day'
         # initialize styles
         self.styles = []
         # display colourful routes

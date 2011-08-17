@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 1st 2011 by Fabien Tricoire
+# Last modified: August 18th 2011 by Fabien Tricoire
 #
 import os
 import string
@@ -225,7 +225,7 @@ class StyleSheet(object):
         width, height = canvas.getSize()
         
         # start grid code here!
-        if not self.gridRouteAttribute:
+        if not self.gridRouteAttribute and solutionData.routeAttributes:
             self.gridRouteAttribute = solutionData.routeAttributes[0]
         # only use a grid if the solution isn't empty
         if self.grid and solutionData.routes:
@@ -305,17 +305,14 @@ class StyleSheet(object):
                     (routePredicate is None or routePredicate(route))
             # display all styles sequentially
             for style in self.styles:
-                try:
-                    style.paintData(inputData, solutionData,
-                                    canvas, convertX, convertY,
-                                    nodePredicate,
-                                    newRoutePredicate,
-                                    arcPredicate,
-                                    (revX(xmin-padding+2), revY(ymin-padding+2),
-                                     revX(xmax+padding-2), revY(ymax+padding-2))
-                                    )
-                except MissingAttributeException as e:
-                    print 'skipping', style.__class__.__name__, ':', e
+                style.paintData(inputData, solutionData,
+                                canvas, convertX, convertY,
+                                nodePredicate,
+                                newRoutePredicate,
+                                arcPredicate,
+                                (revX(xmin-padding+2), revY(ymin-padding+2),
+                                 revX(xmax+padding-2), revY(ymax+padding-2))
+                                )
             # allow to draw everywhere again
             canvas.unrestrictDrawing()
 

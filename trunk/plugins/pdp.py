@@ -2,7 +2,7 @@
 #
 # File created August 2nd 2011 by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 2nd 2011 by Fabien Tricoire
+# Last modified: August 18th 2011 by Fabien Tricoire
 #
 import string
 import sys
@@ -40,6 +40,9 @@ class PDPNodeDisplayer( Style ):
         'delivery colour': Colour(255, 0, 0, 255),
         'pickup contour thickness': 1
         }
+    #
+    def initialise(self):
+        self.requiredNodeAttributes += [ 'type' ]
     #
     def paint(self, inputData, solutionData,
               canvas, convertX, convertY,
@@ -93,6 +96,9 @@ class PickupToDelivery( Style ):
         'line colour': colours.pastelgold,
         'line thickness': 2,
         }
+    #
+    def initialise(self):
+        self.requiredNodeAttributes += [ 'type' ]
     #
     def paint(self, inputData, solutionData,
               canvas, convertX, convertY,

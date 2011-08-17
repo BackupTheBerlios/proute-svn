@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 8th 2011 by Fabien Tricoire
+# Last modified: August 18th 2011 by Fabien Tricoire
 #
 # this file contains styles used to display input and solution data for routing
 # problems
@@ -129,7 +129,7 @@ class Style( object ):
     
     """
     description = 'no description'
-    def __init__(self, description=None, parameterValue={}):
+    def __init__(self, parameters={}, description=None):
         self.parameterValue = {}
         self.parameterInfo = {}
         if description is None:
@@ -138,10 +138,10 @@ class Style( object ):
             self.description = description
         # required attributes for this style
         self.requiredGlobalAttributes = [ ]
-        self.requiredNodeAttributes = [ 'index' ]
-        self.requiredRouteAttributes = [ 'index', 'arcs', 'node information' ]
-        self.requiredArcAttributes = [ 'from', 'to' ]
-        self.requiredSolutionNodeAttributes = [ 'index' ]
+        self.requiredNodeAttributes = [ 'index', 'x', 'y' ]
+        self.requiredRouteAttributes = [ ]#'index', 'arcs', 'node information' ]
+        self.requiredArcAttributes = [ ]#'from', 'to' ]
+        self.requiredSolutionNodeAttributes = [ ]#'index' ]
         # copy class parameter info to this instance
         for key in self.__class__.parameterInfo:
             self.parameterInfo[key] = self.__class__.parameterInfo[key]
@@ -149,8 +149,8 @@ class Style( object ):
         for key in self.__class__.defaultValue:
             self.parameterValue[key] = self.__class__.defaultValue[key]
         # now we can use the specified values
-        for key in parameterValue:
-            self.parameterValue[key] = parameterValue[key]
+        for key in parameters:
+            self.parameterValue[key] = parameters[key]
         # finally, load any additional information defined by the style
         self.initialise()
 
@@ -159,9 +159,10 @@ class Style( object ):
         pass
 
     def __repr__(self):
-        return self.__module__ + '.' + self.__class__.__name__ + \
-            '(description=\'' + self.description + \
-            '\', parameterValue=' + str(self.parameterValue) + ')'
+        return self.__module__ + '.' + self.__class__.__name__ + '(' + \
+            'parameters=' + str(self.parameterValue) + ', ' + \
+            'description=\'' + self.description +  '\', ' + \
+            ')'
             
     def setParameter(self, parameterName, parameterValue):
         self.parameterValue[parameterName] = parameterValue
@@ -171,8 +172,8 @@ class Style( object ):
                   canvas, convertX, convertY,
                   nodePredicate, routePredicate, arcPredicate,
                   boundingBox):
-        self.preProcessAttributes(inputData, solutionData)
         try:
+            self.preProcessAttributes(inputData, solutionData)
             self.paint(inputData, solutionData,
                        canvas, convertX, convertY,
                        nodePredicate, routePredicate, arcPredicate,

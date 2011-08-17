@@ -144,7 +144,7 @@ class NodeDemandDisplayer( Style ):
         }
     #
     def initialise(self):
-        self.requiredNodeAttributes += [ 'demand']
+        self.requiredNodeAttributes += [ 'demand' ]
         self.minDemand = False
         self.maxDemand = False
     #
@@ -191,6 +191,9 @@ class RouteDisplayer( Style ):
         'arc colour': colours.black,
         }
     #
+    def initialise(self):
+        self.requiredArcAttributes += [ 'from', 'to' ]
+    #
     def paint(self, inputData, solutionData,
               canvas, convertX, convertY,
               nodePredicate, routePredicate, arcPredicate,
@@ -225,6 +228,9 @@ class RoutePolylineDisplayer( Style ):
         'thickness': 1,
         'arc colour': colours.black,
         }
+    #
+    def initialise(self):
+        self.requiredRouteAttributes += [ 'node sequence' ]
     #
     def paint(self, inputData, solutionData,
               canvas, convertX, convertY,
@@ -269,6 +275,7 @@ class RouteColourDisplayer( Style ):
             
     def initialise(self):
         # lets paint() know that colours have yet to be allocated
+        self.requiredRouteAttributes += [ 'node sequence' ]
         self.values = None
     #
     def paint(self, inputData, solutionData,

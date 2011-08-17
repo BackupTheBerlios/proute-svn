@@ -1,7 +1,7 @@
 #
 # File created July 30th 2011 by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 17th 2011 by Fabien Tricoire
+# Last modified: August 18th 2011 by Fabien Tricoire
 #
 # -*- coding: utf-8 -*-
 
@@ -270,18 +270,21 @@ class VRXStyleSheet(stylesheet.StyleSheet):
         self.keepAspectRatio = keepAspectRatio
         # initialize styles
         self.styles = []
-        # display each route
-        self.styles.append(\
-            basestyles.RouteDisplayer({'draw depot arcs': True}))
+#         # display each route
+#         self.styles.append(\
+#             basestyles.RouteDisplayer({'draw depot arcs': True}))
         # basic style: display nodes
-        self.styles.append(basestyles.NodeDisplayer({'node size': 3,
-                                                     'hide unused nodes': True,
-                                                     }))
-        # display a label for each node
-        self.styles.append(basestyles.NodeLabelDisplayer({'hide unused nodes':
-                                                              True,
-                                                          }))
-        # display each node's demand
-        self.styles.append(basestyles.NodeDemandDisplayer({'hide unused nodes':
-                                                              True,
-                                                          }))
+        self.styles.append(basestyles.NodeDisplayer(\
+                parameters={ 'node size': 3,
+                             'hide unused nodes': True,
+                             }))
+#         # display a label for each node
+#         self.styles.append(basestyles.NodeLabelDisplayer(\
+#                 parameters={ 'hide unused nodes':
+#                                  True,
+#                              }))
+#         # display each node's demand
+#         self.styles.append(basestyles.NodeDemandDisplayer(\
+#                 parameters={ 'hide unused nodes':
+#                                  True,
+#                              }))

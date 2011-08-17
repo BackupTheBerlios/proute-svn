@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 8th 2011 by Fabien Tricoire
+# Last modified: August 18th 2011 by Fabien Tricoire
 #
 from style import *
 
@@ -314,8 +314,7 @@ class FlexibleNodeDisplayer( Style ):
         'filter attribute': 'is depot',
         'filter value': 'True',
         }
-    def __init__(self, description=None, parameterValue={}):
-        Style.__init__(self, description, parameterValue)
+    def initialise(self):
         self.minValue = None
     #
     def setParameter(self, parameterName, parameterValue):
