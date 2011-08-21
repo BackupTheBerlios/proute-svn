@@ -1,10 +1,11 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 3rd 2011 by Fabien Tricoire
+# Last modified: August 21st 2011 by Fabien Tricoire
 #
 import os
 import sys
+import math
 
 import wx
 
@@ -15,6 +16,12 @@ import wxcanvas
 maxZoom=10000
 zoomFactor=1.1
 zoomKeyStep=0.05
+
+# tolerance factor: how close to a neighbour must the mouse be before we
+# consider it's over it?
+# 0 means the mouse must be exactly at the coordinates of the node
+# 1 means always select the closest node no matter how far it is
+maxDistToNeighbourFactor = 0.01
 
 class VrpPanel(wx.Panel):
     def __init__(self, parent, inputData=None, solutionData=None,
@@ -126,8 +133,12 @@ class VrpPanel(wx.Panel):
         self.SetFocus()
         x, y = event.GetPosition()
         y = self.GetClientSizeTuple()[1] - y
+        maxDist = maxDistToNeighbourFactor * \
+            math.hypot(self.styleSheet.xmax - self.styleSheet.xmin,
+                       self.styleSheet.ymax - self.styleSheet.ymin)
         thisNode = self.inputData.getNodeAtCoords(self.revX(x),
-                                                  self.revY(y))
+                                                  self.revY(y),
+                                                  maxDist)
         if self.nodeInfoList is None:
             if not thisNode is None:
                 print(thisNode)

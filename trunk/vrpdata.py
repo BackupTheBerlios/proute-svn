@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 17th 2011 by Fabien Tricoire
+# Last modified: August 21st 2011 by Fabien Tricoire
 #
 # -*- coding: utf-8 -*-
 # This file contains all routines to encapsulate and read all kinds of VRP data,
@@ -13,11 +13,9 @@ import string
 
 import util
 import vrpexceptions
+import findneighbour
 
 widthNodeFactor = 3
-
-cellRangeInMap = 6
-mapDimension = 500
 
 # this class represents input data for any kind of routing problem
 class VrpInputData(object):
@@ -78,9 +76,15 @@ class VrpInputData(object):
         self.generateMissingData()
         # we must update the bounding box of all nodes we just read
         self.updateBoundingBox()
-        # we also create a map to locate nodes
-        self.createMap()
+        # we also create a neighbour finder
+        self.neighbourFinder = findneighbour.MapNeighbourFinder(self)
+        self.neighbourFinder = findneighbour.TwoDTreeNeighbourFinder(self)
 
+    # get closest node to given coordinates
+    def getNodeAtCoords(self, x, y, maxDist):
+        index = self.neighbourFinder.getNodeIndexAtCoords(x, y, maxDist)
+        return None if index is None else self.nodes[index]
+        
     # complete missing data
     def generateMissingData(self):
         for node in self.nodes:
@@ -116,40 +120,6 @@ class VrpInputData(object):
         if self.height > 600:
             self.height = 600.0
             self.width = self.height / self.heightOverWidth
-
-    # create a (n, n) matrix used as an approximation map to locate nodes:
-    # each cell is either -1 (no node) or the index value of the closest node
-    # in this region
-    def createMap(self):
-        dimension = mapDimension#max(len(self.nodes), 100)
-        self.map = [ [ -1 for i in range(dimension) ]
-                     for j in range(dimension) ]
-        # functions to convert coordinates to cells
-        self.xCoordToRow = util.intervalMapping(self.xmin, self.xmax,
-                                                0, dimension-1)
-        self.yCoordToRow = util.intervalMapping(self.ymin, self.ymax,
-                                                0, dimension-1)
-        # now we fill it!
-        for node in self.nodes:
-            i = int(round(self.xCoordToRow(node['x'])))
-            j = int(round(self.yCoordToRow(node['y'])))
-            for ioffset in range(1 - cellRangeInMap, cellRangeInMap):
-                if i + ioffset < 0 or i + ioffset >= dimension:
-                    continue
-                for joffset in range(1 - cellRangeInMap, cellRangeInMap):
-                    if j + joffset < 0 or j + joffset >= dimension:
-                        continue
-                    self.map[i + ioffset][j + joffset] = node['index']
-
-    # if there is a node nearby the specified coordinates, return it
-    # otherwise return None
-    def getNodeAtCoords(self, x, y):
-        i = int(round(self.xCoordToRow(x)))
-        j = int(round(self.yCoordToRow(y)))
-        if i < 0 or i >= len(self.map) or j < 0 or j >= len(self.map)\
-                or self.map[i][j] == -1:
-            return None
-        return self.nodes[self.map[i][j]]
 
     # print the vrpData
     def __repr__(self):
