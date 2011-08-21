@@ -1,7 +1,7 @@
 #
 # File created July 30th 2011 by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 18th 2011 by Fabien Tricoire
+# Last modified: August 21st 2011 by Fabien Tricoire
 #
 # -*- coding: utf-8 -*-
 
@@ -12,15 +12,42 @@ import stylesheet
 
 class VRXInputData(vrpdata.VrpInputData):    
     problemType = 'VRX'
+    
+    # add dummy request for a depot at specified location, if it isn't there yet
+    def addDepot(self, locationID):
+        key = 'depot ' + locationID
+        if not key in self.requestIDToIndex:
+            location = self.locations[self.locationIDToIndex[locationID]]
+            thisRequest = { 'label': key,
+                            'index': len(self.requests),
+                            'location': locationID,
+                            'value': 0,
+                            'demands': \
+                                [ 0.0 for c in \
+                                      self.attributes['commodities'] ],
+                            'is depot': True,
+                            'x': location['x'],
+                            'y': location['y'],
+                            'release time': 0,
+                            'due date': 0,
+                            }
+            self.requestIDToIndex[key] = len(self.requests)
+            self.requests.append(thisRequest)
+
     # load a VRX instance
     def loadData(self, fName):
-        self.nodeAttributes += [ 'demand', 'release time', 'due date',
-                                 'service time', 'request type' ]
-        self.globalAttributes += [ 'capacity', 'maximum duration' ]
-        self.nodes = []
+        self.nodeAttributes += [ 'demands', 'release time', 'due date',
+                                 'service time' ]
+        self.globalAttributes += [ 'commodities',
+                                   'capacity',
+                                   'maximum duration' ]
         self.attributes = {}
         section = None
+        self.locations = []
         self.locationIDToIndex = {}
+        self.requests = []
+        self.requestIDToIndex = {}
+        self.depotsForRoute = {}
         # read a section at a time
         for rawLine in file(fName):
             # remove the comments
@@ -58,23 +85,47 @@ class VRXInputData(vrpdata.VrpInputData):
                 if section == 'header':
                     if tokens[0] == 'NAME':
                         self.name = tokens[1]
+                    elif tokens[0] == 'COMMODITIES':
+                        self.attributes['commodities'] = tokens[1:]
                 elif section == 'locations':
-                    thisNode = { 'label': tokens[0],
-                                 'index': len(self.nodes),
-                                 'x': string.atof(tokens[1]),
-                                 'y': string.atof(tokens[2]),
-                                 'is depot': True }
-                    self.locationIDToIndex[tokens[0]] = len(self.nodes)
-                    self.nodes.append(thisNode)
+                    thisLocation = { 'label': tokens[0],
+                                     'index': len(self.locations),
+                                     'x': string.atof(tokens[1]),
+                                     'y': string.atof(tokens[2]),
+                                     'is depot': True }
+                    self.locationIDToIndex[tokens[0]] = len(self.locations)
+                    self.locations.append(thisLocation)
                 elif section == 'vehicles':
                     pass
-                elif section == 'routes':
-                    pass
+                elif section == 'vehicle availabilities':
+                    self.addDepot(tokens[2])
+                    self.addDepot(tokens[3])
+                    self.depotsForRoute[tokens[0]] = ('depot ' + tokens[2],
+                                                      'depot ' + tokens[3])
                 elif section == 'requests':
-                    self.nodes[self.locationIDToIndex[tokens[1]]]['is depot'] =\
-                        False
+                    location = \
+                        self.locations[self.locationIDToIndex[tokens[1]]]
+                    thisRequest = { 'label': tokens[0],
+                                    'index': len(self.requests),
+                                    'x': location['x'],
+                                    'y': location['y'],
+                                    'location': tokens[1],
+                                    'value': string.atoi(tokens[2]),
+                                    'demands': [ string.atof(x)
+                                                 for x in tokens[3:] ],
+                                    'is depot': False,
+                                    }
+                    self.requestIDToIndex[tokens[0]] = len(self.requests)
+                    self.requests.append(thisRequest)
                 elif section == 'request times':
-                    pass
+                    index = self.requestIDToIndex[tokens[0]]
+                    self.requests[index]['release time'] = \
+                        string.atoi(tokens[1])
+                    self.requests[index]['due date'] = string.atoi(tokens[2])
+                    self.requests[index]['service time'] = \
+                        string.atoi(tokens[3])
+        # design choice: one node per request
+        self.nodes = self.requests
 
 # load a solution file produced by indigo
 class VRXSolutionData(vrpdata.VrpSolutionData):
@@ -151,8 +202,12 @@ class VRXSolutionData(vrpdata.VrpSolutionData):
                 # special case: end of the route
                 if tokens[0] == '(End)':
                     tokens = [ None ]  + tokens
-                thisNode = { 'index': vrpData.locationIDToIndex[tokens[2]],
-                             'request': tokens[1] }
+                # special case: it's a depot
+                if tokens[1] == '(Start)' or tokens[1] == '(End)':
+                    requestID = 'depot ' + tokens[2]
+                else:
+                    requestID = tokens[1]
+                thisNode = { 'index': vrpData.requestIDToIndex[requestID] }
                 if tokens[1] != '(Start)':
                     for field, value in zip (currentFields[3:], tokens[3:]):
                         prevField = field
@@ -212,8 +267,12 @@ class VRX_CSVSolutionData(vrpdata.VrpSolutionData):
             elif stage == 'route':
                 if tokens[2] == '':
                     continue
-                thisNode = { 'index': vrpData.locationIDToIndex[tokens[3]],
-                             'request': tokens[2] }
+                # special case: it's a depot
+                if tokens[2] == '(Start)' or tokens[2] == '(End)':
+                    requestID = 'depot ' + tokens[3]
+                else:
+                    requestID = tokens[2]
+                thisNode = { 'index': vrpData.requestIDToIndex[requestID] }
                 for field, value in zip (currentFields[4:], tokens[4:]):
                     if tokens[2] != '(Start)' and tokens[2] != '(End)':
                         if field == 'Arrive':
@@ -256,8 +315,10 @@ class VRXRouteSolutionData(vrpdata.VrpSolutionData):
                               'vehicle type': tokens[2][tokens[2].find('-'):],
                               }
                 sequence = tokens[3:]
-                thisRoute['node sequence'] =  [ vrpData.locationIDToIndex[i]
-                                                for i in sequence ]
+                start, finish = vrpData.depotsForRoute[tokens[1]]
+                thisRoute['node sequence'] = \
+                    [ vrpData.requestIDToIndex[i]
+                      for i in [start] + sequence + [finish] ]
                 self.routes.append(thisRoute)
             
 # style for displaying VRX data
@@ -270,9 +331,9 @@ class VRXStyleSheet(stylesheet.StyleSheet):
         self.keepAspectRatio = keepAspectRatio
         # initialize styles
         self.styles = []
-#         # display each route
-#         self.styles.append(\
-#             basestyles.RouteDisplayer({'draw depot arcs': True}))
+        # display each route
+        self.styles.append(\
+            basestyles.RouteColourDisplayer({'draw depot arcs': True}))
         # basic style: display nodes
         self.styles.append(basestyles.NodeDisplayer(\
                 parameters={ 'node size': 3,
