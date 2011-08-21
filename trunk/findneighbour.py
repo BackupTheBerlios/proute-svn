@@ -141,9 +141,3 @@ class TwoDTreeNeighbourFinder(NeighbourFinder):
             maxDist = self.defaultDistUB
         index, distance = self.tree.findClosest(x, y, maxDist)
         return index
-
-t = TwoDTree(0, 0, 0)
-t.insert(1, 1, 1)
-t.insert(2, 1, 2)
-t.insert(3, 2, 2)
-print t.findClosest(-1,3)

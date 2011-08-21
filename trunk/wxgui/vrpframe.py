@@ -67,6 +67,8 @@ class VrpFrame(wx.Frame):
         self.styleSheetPanel.Bind(wx.EVT_BUTTON, self.styleSheetUpdate)
         # in case the stylesheet has been updated: repaint
         self.Bind(events.EVT_STYLESHEET_UPDATE, self.styleSheetUpdate)
+        # in case the window is maximized
+        self.Bind(wx.EVT_SIZE, self.sizeHandler)
         # initialize frame starting layout and size
         if layout is None:
             self.useFactoryLayout(vrpData)
@@ -81,6 +83,13 @@ class VrpFrame(wx.Frame):
         # register it to the app
         events.postRegisterFrameEvent(self)
 
+    def sizeHandler(self, event):
+        # if the window is not maximized, save its size
+        if not self.IsMaximized():
+            self.unMaximisedSize = self.GetSize()
+            self.unMaximisedPosition = self.GetPosition()
+        event.Skip()
+        
     # set the starting layout based on existing configuration
     def setLayout(self, layout):
         try:
@@ -92,6 +101,13 @@ class VrpFrame(wx.Frame):
             self.browserPanel.splitter.SetSashGravity(1)
             for i, w in enumerate(layout['node info columns']):
                 self.browserPanel.nodeInfoList.SetColumnWidth(i, w)
+            self.unMaximisedSize = layout['unmaximised size']
+            self.unMaximisedPosition = layout['unmaximised position']
+            # if the window appears maximised, tell the OS its normal size
+            if self.IsMaximized():
+                self.SetPosition(layout['unmaximised position'])
+                self.SetSize(layout['unmaximised size'])
+                self.Maximize()
         except Exception as e:
             print e
 
@@ -183,6 +199,8 @@ class VrpFrame(wx.Frame):
                   for i in \
                       range(self.browserPanel.nodeInfoList.GetColumnCount())
                   ],
+            'unmaximised size': self.unMaximisedSize,
+            'unmaximised position': self.unMaximisedPosition,
             }
     
     # set a good starting size for the frame
