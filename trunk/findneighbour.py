@@ -120,16 +120,88 @@ class TwoDTree:
                 node, dist = newNode, newDist
             # finally...
             return node, dist
+    # compute tree height
+    def height(self):
+        if self.less is None and self.more is None:
+            return 1
+        elif self.less is None:
+            return 1 + self.more.height()
+        elif self.more is None:
+            return 1 + self.less.height()
+        else:
+            return 1 + max(self.less.height(), self.more.height())
+
+# this class balances the 2d-tree at creation
+class BalancedTwoDTree:
+    # create a 2d-tree
+    def __init__(self, nodes, split=vertical):
+        self.split = split
+        if len(nodes) == 0:
+           self.node = None
+        else:
+            nodes.sort(key=lambda node: node['x' if split == vertical else 'y'])
+            median = len(nodes) // 2
+            self.node = nodes[median]['index']
+            self.x = nodes[median]['x']
+            self.y = nodes[median]['y']
+            self.less = BalancedTwoDTree(nodes[:median], (self.split + 1) % 2)
+            self.more = BalancedTwoDTree(nodes[median+1:], (self.split + 1) % 2)
+    # find the closest node in the tree from x, y
+    # returns a node and a float (closest node found and distance to it)
+    def findClosest(self, x, y, distUB=sys.maxint):
+        # termination case
+        if self.node is None:
+            return None, distUB
+        # else, determine in which subtree we must look fist
+        elif (self.split == vertical and x < self.x) or \
+                (self.split == horizontal and y < self.y):
+            firstSubtree, secondSubtree = self.less, self.more
+        else:
+            firstSubtree, secondSubtree = self.more, self.less
+        # general case
+        node, dist = firstSubtree.findClosest(x, y, distUB)
+        # now let's see if we can finish already
+        distUB = min(dist, distUB)
+        if (self.split == vertical and math.fabs(x - self.x) >= distUB) or \
+                (self.split == horizontal and math.fabs(y - self.y) >= distUB):
+            return node, dist
+        # case where we cannot finish now
+        else:
+            # first compare to this node
+            thisDist = math.hypot(x - self.x, y - self.y)
+            if thisDist < distUB:
+                dist = distUB = thisDist
+                node = self.node
+            # next compare to the yet unexplored subtree
+            newNode, newDist = secondSubtree.findClosest(x, y, distUB)
+            if newDist < distUB:
+                node, dist = newNode, newDist
+            # finally...
+            return node, dist
+    # compute tree height
+    def height(self):
+        if self.node is None:
+            return 0
+        else:
+            return 1 + max(self.less.height(), self.more.height())
         
 # use a 2D-tree to find the nearest neighbour
 class TwoDTreeNeighbourFinder(NeighbourFinder):
     def __init__(self, vrpData):
+#         print '# elements:', len(vrpData.nodes)
         # construct the 2D-tree
         index, x, y = 0, vrpData.nodes[0]['x'], vrpData.nodes[0]['y']
-        self.tree = TwoDTree(index, x, y)
+        tree = TwoDTree(index, x, y)
         for i, node in enumerate(vrpData.nodes[1:]):
             index, x, y = i+1, node['x'], node['y']
-            self.tree.insert(index, x, y)
+            tree.insert(index, x, y)
+#         print 'unbalanced tree height:', tree.height()
+        # balanced version
+        nodes = [ node for node in vrpData.nodes ]
+        balanced = BalancedTwoDTree(nodes)
+#         print 'balanced tree height:', balanced.height()
+        # choose one
+        self.tree = balanced
         # arbitrary value
         self.defaultDistUB = 0.01 * math.hypot(vrpData.xmax - vrpData.xmin,
                                                vrpData.ymax - vrpData.ymin)
