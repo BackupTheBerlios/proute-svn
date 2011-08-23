@@ -153,17 +153,18 @@ class VRXSolutionData(vrpdata.VrpSolutionData):
             # case of a new vehicle
             if tokens[0] == 'Vehicle':
                 currentVehicle = tokens[1]
+                stage = None
             # case of a new route for this vehicle
             elif tokens[0] == 'Route':
                 currentRoute = tokens[1]
             elif tokens[0] == 'Cost':
                 currentCost = string.atoi(tokens[1])
             elif tokens[0] == 'Start:':
-                currentStartTime = string.atoi(tokens[1])
+                currentStartTime = tokens[1]
             elif tokens[0] == 'Finish:':
-                currentFinishTime = string.atoi(tokens[1])
+                currentFinishTime = tokens[1]
             elif tokens[0] == 'Duration:':
-                currentDuration = string.atoi(tokens[1])
+                currentDuration = tokens[1]
             elif tokens[0] == 'Capacity:':
                 currentCapacity = string.atoi(tokens[1])
             elif tokens[0] == 'Max' and tokens[1] == 'Load:':
@@ -177,13 +178,13 @@ class VRXSolutionData(vrpdata.VrpSolutionData):
                 stage = 'route'
                 # append previous route if any
                 if not thisRoute is None:
-                    self.routes.apped(thisRoute)
+                    self.routes.append(thisRoute)
                 # create new route
                 thisRoute = { 'index': len(self.routes),
                               'ID': currentRoute,
                               'vehicle': currentVehicle,
                               'vehicle type': currentVehicle,
-                              'cost': currentCost,
+#                               'cost': currentCost,
                               'starting time': currentStartTime,
                               'finishing time': currentFinishTime,
                               'duration': currentDuration,
@@ -212,15 +213,15 @@ class VRXSolutionData(vrpdata.VrpSolutionData):
                     for field, value in zip (currentFields[3:], tokens[3:]):
                         prevField = field
                         if field == 'Arrive':
-                            thisNode['arrival time'] = string.atoi(value)
+                            thisNode['arrival time'] = value
                         elif field == 'LateArr':
-                            thisNode['latest arrival time'] = string.atoi(value)
+                            thisNode['latest arrival time'] = value
                         elif field == 'Wait':
-                            thisNode['waiting time'] = string.atoi(value)
+                            thisNode['waiting time'] = value
                         elif field == 'Start':
-                            thisNode['service start'] = string.atoi(value)
+                            thisNode['service start'] = value
                         elif field == 'Depart':
-                            thisNode['departure time'] = string.atoi(value)
+                            thisNode['departure time'] = value
                         elif field == 'Cumm' and prevField == 'load':
                             thisNode['load'] = string.atoi(value)
                 # finally add the node to current route
