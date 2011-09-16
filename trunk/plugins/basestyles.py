@@ -103,7 +103,7 @@ class NodeLabelDisplayer( Style ):
         # one-time-only block
         if not 'attribute' in self.parameterInfo:
             self.parameterInfo['attribute'] = \
-                NodeAttributeParameterInfo(inputData)
+                NodeInputAttributeParameterInfo(inputData)
         font = Font(self.parameterValue['font size'],
                     self.parameterValue['font family'],
                     self.parameterValue['font style'])

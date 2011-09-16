@@ -67,9 +67,9 @@ class FlexibleSubInterval(Style):
                 return (isinstance(x, int) or isinstance(x, float)) and \
                     not isinstance(x, bool)
             self.parameterInfo['right bound attribute'] = \
-                NodeAttributeParameterInfo(inputData, acceptable)
+                NodeInputAttributeParameterInfo(inputData, acceptable)
             self.parameterInfo['left bound attribute'] = \
-                NodeAttributeParameterInfo(inputData, acceptable)
+                NodeInputAttributeParameterInfo(inputData, acceptable)
         # only perform painting if the selected attributes are available
         if not (self.parameterValue['right bound attribute'] in \
                     inputData.nodeAttributes and \
@@ -172,7 +172,7 @@ class NodeAttributeAsRectangleDisplayer( Style ):
                 return (isinstance(x, int) or isinstance(x, float)) and \
                     not isinstance(x, bool)
             self.parameterInfo['attribute'] = \
-                NodeAttributeParameterInfo(inputData, acceptable)
+                NodeInputAttributeParameterInfo(inputData, acceptable)
         # only perform painting if the selected attributes are available
         if not self.parameterValue['attribute'] in inputData.nodeAttributes:
             return
@@ -238,7 +238,7 @@ class NodeListAttributeAsRectanglesDisplayer(NodeAttributeAsRectangleDisplayer):
                 return isinstance(x, list) and \
                     (isinstance(x[0], int) or isinstance(x[0], float))
             self.parameterInfo['attribute'] = \
-                NodeAttributeParameterInfo(inputData, acceptable)
+                NodeInputAttributeParameterInfo(inputData, acceptable)
         # only perform painting if the selected attributes are available
         if not self.parameterValue['attribute'] in inputData.nodeAttributes:
             return
@@ -345,18 +345,28 @@ class FlexibleNodeDisplayer( Style ):
                 return (isinstance(x, int) or isinstance(x, float)) and \
                     not isinstance(x, bool)
             self.parameterInfo['radius attribute'] = \
-                NodeAttributeParameterInfo(inputData, acceptable)
+                NodeGlobalAttributeParameterInfo(inputData,
+                                                 solutionData,
+                                                 acceptable)
 #         # only perform painting if the selected attributes are available
 #         if not self.parameterValue['attribute'] in inputData.nodeAttributes:
 #             return
         if not 'filter attribute' in self.parameterInfo:
             acceptable = \
-                lambda x: isinstance(x, bool) or isinstance(x, str)
+                lambda x: isinstance(x, int) or \
+                isinstance(x, str) or isinstance(x, float)
             self.parameterInfo['filter attribute'] = \
-                NodeAttributeParameterInfo(inputData, acceptable)
+                NodeGlobalAttributeParameterInfo(inputData,
+                                                 solutionData,
+                                                 acceptable)
         if not 'filter value' in self.parameterInfo:
-            rawValues = set ( [ node[self.parameterValue['filter attribute']]
-                                for node in inputData.nodes ] )
+            self.fValues = globalNodeAttributeValues(\
+                self.parameterValue['filter attribute'],
+                inputData,
+                solutionData)
+            rawValues = set ( self.fValues )
+#             rawValues = set ( [ node[self.parameterValue['filter attribute']]
+#                                 for node in inputData.nodes ] )
             finalValues = [ x if isinstance(x, str) else str(x)
                             for x in rawValues ]
             self.parameterInfo['filter value'] = \
@@ -367,33 +377,33 @@ class FlexibleNodeDisplayer( Style ):
                 self.parameterValue['filter value'] = finalValues[0]
         # compute min and max demand if required
         if self.minValue is None:
-            values = [ node[self.parameterValue['radius attribute']]
-                        for node in inputData.nodes ]
-            self.minValue, self.maxValue = min(values), max(values)
+            self.rValues = globalNodeAttributeValues(\
+                self.parameterValue['radius attribute'],
+                inputData,
+                solutionData)
+            self.minValue, self.maxValue = min(self.rValues), max(self.rValues)
             self.computeRadius =\
                 util.intervalMapping(self.minValue, self.maxValue,
                                      self.parameterValue['min. radius'],
                                      self.parameterValue['max. radius'])
         # second only continue if an attribute is specified
-        allX, allY, allR = [], [], []
-        for node in inputData.nodes:
+        allR = [ self.computeRadius(x) for x in self.rValues ]
+        allX, allY = [], []
+        for node, value in zip(inputData.nodes, self.fValues):
             if nodePredicate and not nodePredicate(node):
                 continue
             # only display nodes matching the filter
             elif self.parameterValue['filter active'] and \
                     'filter value' in self.parameterValue and \
-                    str(node[self.parameterValue['filter attribute']]) != \
-                    self.parameterValue['filter value']:
+                    str(value) != self.parameterValue['filter value']:
+#                     str(node[self.parameterValue['filter attribute']]) != \
+#                     self.parameterValue['filter value']:
                 continue
             else:
                 allX.append(convertX(node['x']) +
                             self.parameterValue['x offset'])
                 allY.append(convertY(node['y']) +
                             self.parameterValue['y offset'])
-                # now we must compute the apropriate radius
-                if self.parameterValue['radius by attribute']:
-                    allR.append(self.computeRadius( node[\
-                                self.parameterValue['radius attribute']] ) )
         # determine shape to use
         if self.parameterValue['shape type'] == 'polygon':
             shape = shapes.makeRegularPolygon(\

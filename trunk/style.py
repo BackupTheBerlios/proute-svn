@@ -280,7 +280,8 @@ class EnumerationParameterInfo(ParameterInfo):
         return value in self.possibleValues
     
 # node attribute parameter information
-class NodeAttributeParameterInfo(EnumerationParameterInfo):
+# this version only considers the attributes in the input data
+class NodeInputAttributeParameterInfo(EnumerationParameterInfo):
     def __init__(self, vrpData, acceptable=lambda(x): True):
         if vrpData.nodes:
             node = vrpData.nodes[0]
@@ -290,6 +291,46 @@ class NodeAttributeParameterInfo(EnumerationParameterInfo):
             self.possibleValues = []
     def getType(self):
         return 'node attribute'
+    
+# node attribute parameter information
+# this version considers both input and solution data attributes
+class NodeGlobalAttributeParameterInfo(EnumerationParameterInfo):
+    def __init__(self, vrpData, solutionData, acceptable=lambda(x): True):
+        if vrpData.nodes:
+            node = vrpData.nodes[0]
+            possibleInputValues = [ x for x in vrpData.nodeAttributes
+                                    if x in node and acceptable(node[x]) ]
+        else:
+            possibleInputValues = []
+        if solutionData.nodes:
+            node = solutionData.nodes[0]
+            possibleSolutionValues = \
+                [ '+' + x for x in solutionData.nodeAttributes
+                  if x in node and acceptable(node[x]) ]
+        else:
+            possibleSolutionValues = []
+        self.possibleValues = possibleInputValues + possibleSolutionValues
+    def getType(self):
+        return 'node attribute'
+
+# utility function to retrieve attribute values:
+# if there is a heading '+' remove it and look up the attribute in solutionData,
+# else look up the attribute in inputData
+def globalNodeAttributeValues(attribute, inputData, solutionData):
+    if attribute[0] == '+':
+        return [ node[attribute[1:]] for node in solutionData.nodes ]
+    else:
+        return [ node[attribute] for node in inputData.nodes ]
+
+# utility function to retrieve attribute value:
+# same as above but for just one node
+def globalNodeAttributeValue(attribute, node, solutionData):
+    if attribute[0] == '+':
+        return solutionData.nodes[node['index']][attribute[1:]]
+    else:
+        return node[attribute]
+
+
     
 # route attribute parameter information
 class RouteAttributeParameterInfo(EnumerationParameterInfo):
