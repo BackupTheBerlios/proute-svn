@@ -25,6 +25,9 @@ class CentredPolygon:
         if factor != 1:
             self.points = [ (x * factor, y * factor)
                             for x, y in points ]
+
+    def __repr__(self):
+        return 'CentredPolygon(' + str(self.points) + ')'
         
     # provide a list of points corresponding to this polygon transformed using
     # given angle and radius

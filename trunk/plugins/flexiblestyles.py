@@ -283,8 +283,8 @@ class FlexibleNodeDisplayer( Style ):
     parameterInfo = {
         'x offset': offsetInfo,
         'y offset': offsetInfo,
-        'min. radius': IntParameterInfo(2, 20),
-        'max. radius': IntParameterInfo(5, 200),
+        'min. radius': IntParameterInfo(1, 200),
+        'max. radius': IntParameterInfo(1, 200),
         'fill colour': ColourParameterInfo(),
         'contour colour': ColourParameterInfo(),
         'shape type': EnumerationParameterInfo( [ 'polygon',
@@ -353,28 +353,26 @@ class FlexibleNodeDisplayer( Style ):
 #             return
         if not 'filter attribute' in self.parameterInfo:
             acceptable = \
-                lambda x: isinstance(x, int) or \
-                isinstance(x, str) or isinstance(x, float)
+                lambda x: True #isinstance(x, int) or \
+                #isinstance(x, str) or isinstance(x, float)
             self.parameterInfo['filter attribute'] = \
                 NodeGlobalAttributeParameterInfo(inputData,
                                                  solutionData,
                                                  acceptable)
         if not 'filter value' in self.parameterInfo:
-            self.fValues = globalNodeAttributeValues(\
+            values = globalNodeAttributeValues(\
                 self.parameterValue['filter attribute'],
                 inputData,
                 solutionData)
-            rawValues = set ( self.fValues )
-#             rawValues = set ( [ node[self.parameterValue['filter attribute']]
-#                                 for node in inputData.nodes ] )
-            finalValues = [ x if isinstance(x, str) else str(x)
-                            for x in rawValues ]
+            self.fValues = [ x if isinstance(x, str) else str(x)
+                             for x in values ]
+            uniqueValues = [ x for x in set ( self.fValues ) ]
             self.parameterInfo['filter value'] = \
-                EnumerationParameterInfo(finalValues)
-            # case where 
+                EnumerationParameterInfo(uniqueValues)
+            # case where it hasn't been set yet
             if not 'filter value' in self.parameterValue or \
-                    not self.parameterValue['filter value'] in finalValues:
-                self.parameterValue['filter value'] = finalValues[0]
+                    not self.parameterValue['filter value'] in uniqueValues:
+                self.parameterValue['filter value'] = uniqueValues[0]
         # compute min and max demand if required
         if self.minValue is None:
             self.rValues = globalNodeAttributeValues(\
@@ -395,9 +393,7 @@ class FlexibleNodeDisplayer( Style ):
             # only display nodes matching the filter
             elif self.parameterValue['filter active'] and \
                     'filter value' in self.parameterValue and \
-                    str(value) != self.parameterValue['filter value']:
-#                     str(node[self.parameterValue['filter attribute']]) != \
-#                     self.parameterValue['filter value']:
+                    value != self.parameterValue['filter value']:
                 continue
             else:
                 allX.append(convertX(node['x']) +

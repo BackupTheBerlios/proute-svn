@@ -56,7 +56,10 @@ class FNDPSolutionData(vrpdata.VrpSolutionData):
     def loadData(self, fName, vrpData):
         self.routeAttributes += [ 'starting time' ]
         self.routeNodeAttributes += [ 'quantity' ]
+        self.nodeAttributes += [ 'first period' ]
         self.routes = []
+        for node in self.nodes:
+            node['first period'] = sys.maxint
         for line in file.readlines(file(fName)):
             tokens = line.split()
             if tokens[0] == '***':
@@ -82,6 +85,13 @@ class FNDPSolutionData(vrpdata.VrpSolutionData):
                              'node sequence': nodes,
                              'node information': routeNodes,
                              'starting time': startingTime }
+                # update the period of first delivery for each node
+                for node in routeNodes:
+                    if self.nodes[node['index']]['first period'] \
+                            > node['period']:
+                        self.nodes[node['index']]['first period'] = \
+                            node['period']
+                # let's not forget to add the route...
                 self.routes.append(thisRoute)
 
 class FNDPStyleSheet(stylesheet.StyleSheet):
