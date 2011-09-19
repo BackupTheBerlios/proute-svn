@@ -231,9 +231,10 @@ class WxCanvas(canvas.Canvas):
 
     # draw several polygons with the same style
     # x and y are lists of lists of point coordinates
+    # style is either unique or a list of styles to use
     def drawPolygons(self, xss, yss, style):
         self.setDrawingStyle(style)
-        for xs, ys in zip(xss, yss):
+        for i, (xs, ys) in enumerate(zip(xss, yss)):
             points = [ (x, self.height-y) for x, y in zip(xs, ys) ]
             self.dc.DrawPolygon(points)
 

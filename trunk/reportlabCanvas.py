@@ -177,8 +177,9 @@ class ReportlabCanvas(Canvas):
         self.setDrawingStyle(style)
         list = reduce(lambda x,y: x+y, [ [x[i], y[i]] for i in range(len(x)) ] )
         fillCol = convertColour(style.fillColour)
-        strokeCol = convertColour(style.lineColour)
         thickness = getThickness(style)
+        strokeCol = convertColour(style.lineColour) \
+            if thickness > 0 else fillCol
         p = Polygon(list,
                     strokeColor=strokeCol,
                     fillColor=fillCol,
@@ -197,7 +198,8 @@ class ReportlabCanvas(Canvas):
             list = reduce(lambda x,y: x+y,
                           [ [x[i], y[i]] for i in range(len(x)) ] )
             fillCol = convertColour(style.fillColour)
-            strokeCol = convertColour(style.lineColour)
+            strokeCol = convertColour(style.lineColour) \
+                if thickness > 0 else fillCol
             thickness = getThickness(style)
             p = Polygon(list,
                         strokeColor=strokeCol,

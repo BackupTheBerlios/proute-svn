@@ -285,8 +285,10 @@ class FlexibleNodeDisplayer( Style ):
         'y offset': offsetInfo,
         'min. radius': IntParameterInfo(1, 200),
         'max. radius': IntParameterInfo(1, 200),
-        'fill colour': ColourParameterInfo(),
-        'contour colour': ColourParameterInfo(),
+        'colour by attribute': BoolParameterInfo(),
+        'fill colour': ColourMapParameterInfo(),
+        'contour colour': ColourMapParameterInfo(),
+        'contour thickness': IntParameterInfo(0, 20),
         'shape type': EnumerationParameterInfo( [ 'polygon',
                                                   'regular star',
                                                   'sharp star',
@@ -303,19 +305,25 @@ class FlexibleNodeDisplayer( Style ):
         'y offset': 0,
         'min. radius': 3,
         'max. radius': 10,
-        'fill colour': colours.darkpurple,
-        'contour colour': colours.black,
+        'fill colour': ColourMap([colours.darkpurple]),
+        'contour colour': ColourMap([colours.black]),
         'shape type': 'polygon',
         'number of edges': 3,
         'angle': 0,
         'radius by attribute': False,
         'radius attribute': 'index',
+        'colour attribute': 'index',
         'filter active': False,
         'filter attribute': 'is depot',
         'filter value': 'True',
+        'colour by attribute': False,
+        'contour thickness': 1,
         }
     def initialise(self):
+        # for radius by attribute
         self.minValue = None
+        # for colour by attribute
+        self.colourValues = None
     #
     def setParameter(self, parameterName, parameterValue):
         Style.setParameter(self, parameterName, parameterValue)
@@ -329,6 +337,8 @@ class FlexibleNodeDisplayer( Style ):
                 or parameterName == 'min. radius' \
                 or parameterName == 'max. radius':
             self.minValue = None
+        if parameterName == 'colour attribute':
+            self.colourValues = None
         # in case we change the attribute on which the filter is based,
         # we must compute the list of possible values for this attribute
         if parameterName == 'filter attribute':
@@ -367,12 +377,18 @@ class FlexibleNodeDisplayer( Style ):
             self.fValues = [ x if isinstance(x, str) else str(x)
                              for x in values ]
             uniqueValues = [ x for x in set ( self.fValues ) ]
+            uniqueValues.sort()
             self.parameterInfo['filter value'] = \
                 EnumerationParameterInfo(uniqueValues)
             # case where it hasn't been set yet
             if not 'filter value' in self.parameterValue or \
                     not self.parameterValue['filter value'] in uniqueValues:
                 self.parameterValue['filter value'] = uniqueValues[0]
+        if not 'colour attribute' in self.parameterInfo:
+            self.parameterInfo['colour attribute'] = \
+                NodeGlobalAttributeParameterInfo(inputData,
+                                                 solutionData,
+                                                 lambda x: True)
         # compute min and max demand if required
         if self.minValue is None:
             self.rValues = globalNodeAttributeValues(\
@@ -384,22 +400,51 @@ class FlexibleNodeDisplayer( Style ):
                 util.intervalMapping(self.minValue, self.maxValue,
                                      self.parameterValue['min. radius'],
                                      self.parameterValue['max. radius'])
-        # second only continue if an attribute is specified
+        # enumerate different values for colouring the nodes
+        if self.colourValues is None:
+            self.colourValues = globalNodeAttributeValues(\
+                self.parameterValue['colour attribute'],
+                inputData,
+                solutionData)
+            self.colourSet = set(self.colourValues)
+            self.colourMapping = {}
+            for v in self.colourSet:
+                if not v in self.colourMapping:
+                    self.colourMapping[v] = len(self.colourMapping)
+        # radius for each node
         allR = [ self.computeRadius(x) for x in self.rValues ]
         allX, allY = [], []
-        for node, value in zip(inputData.nodes, self.fValues):
+        # case where each node has the same colour
+        if not self.parameterValue['colour by attribute']:
+            style = DrawingStyle( \
+                self.parameterValue['contour colour'][0],
+                self.parameterValue['fill colour'][0],
+                lineThickness=self.parameterValue['contour thickness'])
+        # otherwise we must use a different style for each node
+        else:
+            style = []
+        for node, filterValue, colourValue in zip(inputData.nodes,
+                                                  self.fValues,
+                                                  self.colourValues):
             if nodePredicate and not nodePredicate(node):
                 continue
             # only display nodes matching the filter
             elif self.parameterValue['filter active'] and \
                     'filter value' in self.parameterValue and \
-                    value != self.parameterValue['filter value']:
+                    filterValue != self.parameterValue['filter value']:
                 continue
             else:
                 allX.append(convertX(node['x']) +
                             self.parameterValue['x offset'])
                 allY.append(convertY(node['y']) +
                             self.parameterValue['y offset'])
+                if self.parameterValue['colour by attribute']:
+                    index = self.colourMapping[colourValue]
+                    style.append(DrawingStyle(\
+                            self.parameterValue['contour colour'][index],
+                            self.parameterValue['fill colour'][index],
+                            lineThickness = \
+                                self.parameterValue['contour thickness']))
         # determine shape to use
         if self.parameterValue['shape type'] == 'polygon':
             shape = shapes.makeRegularPolygon(\
@@ -419,16 +464,18 @@ class FlexibleNodeDisplayer( Style ):
         else:
             return
         # Now we can draw the polygons
-        style = DrawingStyle(self.parameterValue['contour colour'],
-                             self.parameterValue['fill colour'])
         # In case they all have the same radius, we can use the faster method
-        if not self.parameterValue['radius by attribute']:
+        # otherwise we have to display each polygon separately
+        if self.parameterValue['radius by attribute'] or \
+                self.parameterValue['colour by attribute']:
+            for i, (x, y, r) in enumerate(zip(allX, allY, allR)):
+                canvas.drawCentredPolygon(shape, x, y, r,
+                                          style[i] \
+                                              if isinstance(style, list) \
+                                              else style,
+                                          self.parameterValue['angle'])
+        else:
             canvas.drawCentredPolygons(shape, allX, allY,
                                        self.parameterValue['max. radius'],
                                        style,
                                        self.parameterValue['angle'])
-        # otherwise we have to display each polygon separately
-        else:
-            for x, y, r in zip(allX, allY, allR):
-                canvas.drawCentredPolygon(shape, x, y, r, style,
-                                          self.parameterValue['angle'])
