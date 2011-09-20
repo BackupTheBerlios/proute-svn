@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 18th 2011 by Fabien Tricoire
+# Last modified: September 20th 2011 by Fabien Tricoire
 #
 from style import *
 
@@ -289,7 +289,8 @@ class FlexibleNodeDisplayer( Style ):
         'fill colour': ColourMapParameterInfo(),
         'contour colour': ColourMapParameterInfo(),
         'contour thickness': IntParameterInfo(0, 20),
-        'shape type': EnumerationParameterInfo( [ 'polygon',
+        'shape type': EnumerationParameterInfo( [ 'circle',
+                                                  'polygon',
                                                   'regular star',
                                                   'sharp star',
                                                   'fat star',
@@ -324,6 +325,11 @@ class FlexibleNodeDisplayer( Style ):
         self.minValue = None
         # for colour by attribute
         self.colourValues = None
+        # filter value should be a string
+        if 'filter value' in self.parameterValue and \
+                not isinstance(self.parameterValue['filter value'], str):
+            self.parameterValue['filter value'] = \
+                str(self.parameterValue['filter value'])
     #
     def setParameter(self, parameterName, parameterValue):
         Style.setParameter(self, parameterName, parameterValue)
@@ -446,7 +452,9 @@ class FlexibleNodeDisplayer( Style ):
                             lineThickness = \
                                 self.parameterValue['contour thickness']))
         # determine shape to use
-        if self.parameterValue['shape type'] == 'polygon':
+        if self.parameterValue['shape type'] == 'circle':
+            shape = shapes.Circle()
+        elif self.parameterValue['shape type'] == 'polygon':
             shape = shapes.makeRegularPolygon(\
                 self.parameterValue['number of edges'] )
         elif self.parameterValue['shape type'] == 'regular star':
@@ -463,19 +471,20 @@ class FlexibleNodeDisplayer( Style ):
                 self.parameterValue['number of edges'], 1.5 )
         else:
             return
-        # Now we can draw the polygons
-        # In case they all have the same radius, we can use the faster method
+        # Now we can draw the shapes
+        # In case they all have the same radius and the same style,
+        # we can use the faster method
         # otherwise we have to display each polygon separately
         if self.parameterValue['radius by attribute'] or \
                 self.parameterValue['colour by attribute']:
             for i, (x, y, r) in enumerate(zip(allX, allY, allR)):
-                canvas.drawCentredPolygon(shape, x, y, r,
-                                          style[i] \
-                                              if isinstance(style, list) \
-                                              else style,
-                                          self.parameterValue['angle'])
+                canvas.drawShape(shape, x, y, r,
+                                 style[i] \
+                                     if isinstance(style, list) \
+                                     else style,
+                                 self.parameterValue['angle'])
         else:
-            canvas.drawCentredPolygons(shape, allX, allY,
-                                       self.parameterValue['max. radius'],
-                                       style,
-                                       self.parameterValue['angle'])
+            canvas.drawShapes(shape, allX, allY,
+                              self.parameterValue['max. radius'],
+                              style,
+                              self.parameterValue['angle'])

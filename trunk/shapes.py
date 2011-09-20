@@ -1,4 +1,12 @@
+#
+# File created August 7th 2011 by Fabien Tricoire
+# fabien.tricoire@univie.ac.at
+# Last modified: September 20th 2011 by Fabien Tricoire
+#
 from math import *
+
+class Circle:
+    pass
 
 class CentredPolygon:
     '''

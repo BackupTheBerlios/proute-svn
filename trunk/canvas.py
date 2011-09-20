@@ -1,9 +1,10 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 7th 2011 by Fabien Tricoire
+# Last modified: September 20th 2011 by Fabien Tricoire
 #
 import util
+import shapes
 
 class Canvas:
     """
@@ -79,6 +80,25 @@ class Canvas:
     def drawPolygons(self, xss, yss, style):
         print 'Error: method drawPolygons not implemented in backend'
 
+    # draw a shape
+    # current version is ugly, should be improved one day to something better
+    # with a generic shape/path format etc
+    def drawShape(self, shape, x, y, radius, style, angle=0):
+        if isinstance(shape, shapes.Circle):
+            self.drawCircle(x, y, radius, style)
+        elif isinstance(shape, shapes.CentredPolygon):
+            self.drawCentredPolygon(shape, x, y, radius, style, angle)
+        else:
+            print 'Error: unknown type of shape:', shape
+    # same with multiple instances
+    def drawShapes(self, shape, xs, ys, radius, style, angle=0):
+        if isinstance(shape, shapes.Circle):
+            self.drawCircles(xs, ys, [ radius for i in xs ], style)
+        elif isinstance(shape, shapes.CentredPolygon):
+            self.drawCentredPolygons(shape, xs, ys, radius, style, angle)
+        else:
+            print 'Error: unknown type of shape:', shape
+        
     # draw a centred polygon
     # x and y are center coordinates
     def drawCentredPolygon(self, polygon, x, y, radius, style, angle=0):

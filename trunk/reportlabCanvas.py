@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 7th 2011 by Fabien Tricoire
+# Last modified: September 20th 2011 by Fabien Tricoire
 #
 import random
 from math import *
@@ -105,7 +105,9 @@ class ReportlabCanvas(Canvas):
             x, y = x, y
         self.setDrawingStyle(style)
         fill = not style.fillColour is None
-        self.canvas.rect(x, y, w, h, fill=fill)
+        self.canvas.rect(x, y, w, h, fill=fill,
+                         strokeDashArray=[0,100] if thickness <= 0 else [],
+                         )
 
     # draw a list of rectangles with the same style
     # xs, ys, ws, hs are lists
@@ -117,7 +119,9 @@ class ReportlabCanvas(Canvas):
     def drawCircle(self, x, y, r, style):
         self.setDrawingStyle(style)
         fill = not style.fillColour is None
-        self.canvas.circle(x, y, r, fill=fill)
+        self.canvas.circle(x, y, r, fill=fill,
+                           strokeDashArray=[0,100] if thickness <= 0 else [],
+                           )
 
     # draw a list of circles with the same colour style
     # parameters xs, ys, rs should be lists
@@ -179,12 +183,14 @@ class ReportlabCanvas(Canvas):
         fillCol = convertColour(style.fillColour)
         thickness = getThickness(style)
         strokeCol = convertColour(style.lineColour) \
-            if thickness > 0 else fillCol
+            #if thickness > 0 else fillCol
         p = Polygon(list,
                     strokeColor=strokeCol,
                     fillColor=fillCol,
                     strokeWidth=thickness,
-                    strokeLineJoin=1)
+                    strokeLineJoin=1,
+                    strokeDashArray=[0,100] if thickness <= 0 else [],
+                    )
         d = Drawing(self.width, self.height)
         d.add(p)
         renderPDF.draw(d, self.canvas, 0, 0)
@@ -198,14 +204,16 @@ class ReportlabCanvas(Canvas):
             list = reduce(lambda x,y: x+y,
                           [ [x[i], y[i]] for i in range(len(x)) ] )
             fillCol = convertColour(style.fillColour)
-            strokeCol = convertColour(style.lineColour) \
-                if thickness > 0 else fillCol
             thickness = getThickness(style)
+            strokeCol = convertColour(style.lineColour) \
+                #if thickness > 0 else fillCol
             p = Polygon(list,
                         strokeColor=strokeCol,
                         fillColor=fillCol,
                         strokeWidth=thickness,
-                        strokeLineJoin=1)
+                        strokeLineJoin=1,
+                        strokeDashArray=[0,100] if thickness <= 0 else [],
+                        )
             d.add(p)
             renderPDF.draw(d, self.canvas, 0, 0)
 
