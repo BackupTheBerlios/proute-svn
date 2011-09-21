@@ -98,10 +98,18 @@ class DrawingStyle:
                  fillColour=None,
                  lineThickness=None,
                  lineStyle='solid'):
-        self.lineColour = lineColour
+        self._lineColour = lineColour
         self.lineThickness = lineThickness
         self.fillColour = fillColour
         self.lineStyle=lineStyle
+        
+    # return transparent colour is thickness is 0, so that no border is drawn
+    def getLineColour(self):
+        return Colour(0, 0, 0, 0) if self.lineThickness <= 0 \
+            else self._lineColour
+
+    # property that returns the right line colour depending on thickness
+    lineColour = property(getLineColour)
 
 # abstract style class
 class Style( object ):

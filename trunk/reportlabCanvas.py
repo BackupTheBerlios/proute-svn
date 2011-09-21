@@ -106,7 +106,7 @@ class ReportlabCanvas(Canvas):
         self.setDrawingStyle(style)
         fill = not style.fillColour is None
         self.canvas.rect(x, y, w, h, fill=fill,
-                         strokeDashArray=[0,100] if thickness <= 0 else [],
+#                          strokeDashArray=[0,100] if thickness <= 0 else [],
                          )
 
     # draw a list of rectangles with the same style
@@ -120,7 +120,7 @@ class ReportlabCanvas(Canvas):
         self.setDrawingStyle(style)
         fill = not style.fillColour is None
         self.canvas.circle(x, y, r, fill=fill,
-                           strokeDashArray=[0,100] if thickness <= 0 else [],
+#                            strokeDashArray=[0,100] if thickness <= 0 else [],
                            )
 
     # draw a list of circles with the same colour style
@@ -135,9 +135,9 @@ class ReportlabCanvas(Canvas):
         self.canvas.line(x1, y1, x2, y2)
         # smooth line joints
         thickness = getThickness(style)
+        style.lineThickness = 0.0
         oldFillcolour = style.fillColour
         style.fillColour = style.lineColour
-        style.lineThickness = 0.0
         self.drawCircle(x1, y1, (thickness) /2.0, style)
         self.drawCircle(x2, y2, (thickness) /2.0, style)
         style.lineThickness = thickness
@@ -189,7 +189,7 @@ class ReportlabCanvas(Canvas):
                     fillColor=fillCol,
                     strokeWidth=thickness,
                     strokeLineJoin=1,
-                    strokeDashArray=[0,100] if thickness <= 0 else [],
+#                     strokeDashArray=[0,100] if thickness <= 0 else [],
                     )
         d = Drawing(self.width, self.height)
         d.add(p)
@@ -212,7 +212,7 @@ class ReportlabCanvas(Canvas):
                         fillColor=fillCol,
                         strokeWidth=thickness,
                         strokeLineJoin=1,
-                        strokeDashArray=[0,100] if thickness <= 0 else [],
+#                         strokeDashArray=[0,100] if thickness <= 0 else [],
                         )
             d.add(p)
             renderPDF.draw(d, self.canvas, 0, 0)
