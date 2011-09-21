@@ -418,7 +418,10 @@ class FlexibleNodeDisplayer( Style ):
                 if not v in self.colourMapping:
                     self.colourMapping[v] = len(self.colourMapping)
         # radius for each node
-        allR = [ self.computeRadius(x) for x in self.rValues ]
+        allR = [ self.computeRadius(x) \
+                     if self.parameterValue['radius by attribute'] \
+                     else self.parameterValue['max. radius']
+                 for x in self.rValues ]
         allX, allY = [], []
         # case where each node has the same colour
         if not self.parameterValue['colour by attribute']:
