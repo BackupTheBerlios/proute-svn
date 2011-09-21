@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: September 20th 2011 by Fabien Tricoire
+# Last modified: September 21st 2011 by Fabien Tricoire
 #
 from style import *
 
@@ -288,7 +288,7 @@ class FlexibleNodeDisplayer( Style ):
         'colour by attribute': BoolParameterInfo(),
         'fill colour': ColourMapParameterInfo(),
         'contour colour': ColourMapParameterInfo(),
-        'contour thickness': IntParameterInfo(0, 20),
+        'contour thickness': IntParameterInfo(-1, 20),
         'shape type': EnumerationParameterInfo( [ 'circle',
                                                   'polygon',
                                                   'regular star',

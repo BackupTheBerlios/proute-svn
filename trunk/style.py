@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 18th 2011 by Fabien Tricoire
+# Last modified: September 21st 2011 by Fabien Tricoire
 #
 # this file contains styles used to display input and solution data for routing
 # problems
@@ -105,8 +105,12 @@ class DrawingStyle:
         
     # return transparent colour is thickness is 0, so that no border is drawn
     def getLineColour(self):
-        return Colour(0, 0, 0, 0) if self.lineThickness <= 0 \
-            else self._lineColour
+        if self.lineThickness <= -1:
+            return Colour(0, 0, 0, 30)
+        elif self.lineThickness <= 0:
+            return Colour(0, 0, 0, 0)
+        else:
+            return self._lineColour
 
     # property that returns the right line colour depending on thickness
     lineColour = property(getLineColour)
