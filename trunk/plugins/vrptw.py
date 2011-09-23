@@ -83,5 +83,5 @@ class VRPTWStyleSheet(stylesheet.StyleSheet):
 #         # display each node's demand
 #         self.styles.append(basestyles.NodeDemandDisplayer())
         # display time windows
-        self.styles.append(timestyles.TimeWindowDisplayer())
+        self.styles.append(timestyles.TimeDataDisplayer())
         

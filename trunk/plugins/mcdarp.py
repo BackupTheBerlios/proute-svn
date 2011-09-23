@@ -262,4 +262,4 @@ class MCDARPStyleSheet(stylesheet.StyleSheet):
 #         self.styles.append(basestyles.NodeDisplayer(nodeSize=3))
 #         # display a label for each node
 #         self.styles.append(basestyles.NodeLabelDisplayer())
-        self.styles.append(timestyles.TimeWindowDisplayer())
+        self.styles.append(timestyles.TimeDataDisplayer())
