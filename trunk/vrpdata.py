@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 21st 2011 by Fabien Tricoire
+# Last modified: September 22nd 2011 by Fabien Tricoire
 #
 # -*- coding: utf-8 -*-
 # This file contains all routines to encapsulate and read all kinds of VRP data,
@@ -10,6 +10,7 @@
 import os
 import sys
 import string
+import math
 
 import util
 import vrpexceptions
@@ -43,6 +44,13 @@ class VrpInputData(object):
     """
     problemType = 'Change me'
     instanceType = 'default'
+    # print the vrpData
+    def __repr__(self):
+        return self.__module__ + '.' + self.__class__.__name__ + \
+            '(\'' + util.escapeFileName(self.fName) + '\')'
+#         return self.__module__ + '.' + self.__class__.__name__ + \
+#             '(fName=\'' + self.fName + '\')'
+    
     def __init__(self, fName):
         """
         Do some preprocessing, load the data from fName and do some
@@ -74,10 +82,15 @@ class VrpInputData(object):
                                                             fName)
         # generate missing information
         self.generateMissingData()
+        # in case the travel time matrix doesn't exist, make a simple one
+        try:
+            self.travelTime
+        except Exception as e:
+            self.computeEuclideanTravelTimes()
         # we must update the bounding box of all nodes we just read
         self.updateBoundingBox()
         # we also create a neighbour finder
-        self.neighbourFinder = findneighbour.MapNeighbourFinder(self)
+#         self.neighbourFinder = findneighbour.MapNeighbourFinder(self)
         self.neighbourFinder = findneighbour.TwoDTreeNeighbourFinder(self)
 
     # get closest node to given coordinates
@@ -121,13 +134,14 @@ class VrpInputData(object):
             self.height = 600.0
             self.width = self.height / self.heightOverWidth
 
-    # print the vrpData
-    def __repr__(self):
-        return self.__module__ + '.' + self.__class__.__name__ + \
-            '(\'' + util.escapeFileName(self.fName) + '\')'
-#         return self.__module__ + '.' + self.__class__.__name__ + \
-#             '(fName=\'' + self.fName + '\')'
-    
+    # compute travel times using euclidean distance
+    def computeEuclideanTravelTimes(self):
+        self.travelTime = [ [ round(math.hypot(n1['x'] - n2['x'],
+                                               n1['y'] - n2['y'], ),
+                                    2)
+                              for n1 in self.nodes ]
+                            for n2 in self.nodes ]
+            
 # this class stores solution data for any kind of routing problem
 class VrpSolutionData(object):
     """
@@ -164,6 +178,18 @@ class VrpSolutionData(object):
     """
     problemType = 'Change me'
     solutionType = 'default'
+    
+    # print the solutionData
+    def __repr__(self):
+        # trick: allows to load a solution with eval() provided there is a
+        # vrpData instance loaded and called myData
+        return self.__module__ + '.' + self.__class__.__name__ + \
+            '(\'' + util.escapeFileName(self.fName) + '\', myData)'
+#         return self.__module__ + '.' + self.__class__.__name__ + \
+#             '(fName=\'' + self.fName + '\', vrpData=myData)'
+
+    # standard constructor, always called. It does all kinds of necessary
+    # initialisations then calls the specialised self.loadData() method
     def __init__(self, fName, vrpData):
         self.fName = os.path.abspath(fName)
         # solution attributes e.g. cost
@@ -205,6 +231,11 @@ class VrpSolutionData(object):
         self.filterRouteData()
         # generate solution information on each node
         self.populateNodeData(vrpData)
+        # generate scheduling information if needed and possible
+        if 'release time' in vrpData.nodeAttributes \
+                and 'due date' in vrpData.nodeAttributes \
+                and not 'start of service' in self.nodeAttributes:
+            self.computeSimpleScheduling(vrpData)
 
     # generate information on nodes if it's missing
     def populateNodeData(self, vrpData):
@@ -284,16 +315,25 @@ class VrpSolutionData(object):
                     route['arcs'][-1]['to']
             # now the previous method can be used for generating nodes
             self.populateRouteDataFromNodeSequence()
-            
-    # print the solutionData
-    def __repr__(self):
-        # trick: allows to load a solution with eval() provided there is a
-        # vrpData instance loaded and called myData
-        return self.__module__ + '.' + self.__class__.__name__ + \
-            '(\'' + util.escapeFileName(self.fName) + '\', myData)'
-#         return self.__module__ + '.' + self.__class__.__name__ + \
-#             '(fName=\'' + self.fName + '\', vrpData=myData)'
 
+    # generate scheduling information
+    # precondition: release time and due date are defined numeric values
+    # for each node in the input data
+    def computeSimpleScheduling(self, vrpData):
+        self.nodeAttributes += [ 'arrival time', 'start of service',
+                                 'end of service' ]
+        for route in self.routes:
+            sequence = route['node sequence'] + [ route['node sequence'][-1] ]
+            currentTime = 0
+            for i, index in enumerate( sequence[:-1] ):
+                self.nodes[index]['arrival time'] = currentTime
+                currentTime = max(vrpData.nodes[index]['release time'],
+                                  currentTime)
+                self.nodes[index]['start of service'] = currentTime
+                currentTime += vrpData.nodes[index]['service time']
+                self.nodes[index]['end of service'] = currentTime
+                currentTime += vrpData.travelTime[index][sequence[i+1]]
+            
 # this class encapsulates an empty solution
 # this is useful for cases where we only want to display vrp data
 class VrpEmptySolution(VrpSolutionData):

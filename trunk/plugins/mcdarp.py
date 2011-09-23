@@ -94,6 +94,8 @@ class MCDARPInputData(vrpdata.VrpInputData):
 #                 print 'Corrupt line in MCDARP instance:', line
 #                 print len(line), 'but there are', nNodes, 'node information'
                 raise vrpexceptions.VrpInputFileFormatExcepton('MCDARP', fName)
+        # standard attribute for time matrix
+        self.travelTime = self.attributes['time matrix']
         # post-processing: refine time windows using max ride times
         for r in self.nodes:
             if r['type'] == 'pickup':
