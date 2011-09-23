@@ -32,7 +32,7 @@ class TimeDataDisplayer(Style):
         'width': 20,
         'height': 7,
         'time window colour': colours.dimcyan,
-        'waiting time colour': colours.funkygreen,
+        'waiting time colour': colours.darkorange,
         'service time colour': colours.red,
         'background colour': colours.white,
         'contour colour': colours.black,
