@@ -58,19 +58,37 @@ class ColourMap():
 # generate k spread colours
 def generateSpreadColours(k):
     result = []
-    nValues = k ** (1.0/3)
-    values = []
-    v = 255
-    while len(values) < nValues:
-        values.append(v)
-        v = v - 255/nValues
-#         v = (1+v) / 2
-#     values = [ 255 - x for x in values ]
-    for red in values:
-        for green in values:
-            for blue in values:
-                result.append(Colour(red, green, blue))
-    return ColourMap(result[:k])
+    import colourmapping
+    import colours
+    g = colourmapping.Gradient(ColourMap([colours.red,
+                                          colours.yellow,
+                                          colours.green,
+                                          colours.cyan,
+                                          colours.blue,
+                                          colours.magenta,
+                                          ]),
+                               [0, 1],
+                               )
+    step = 1.0 / k
+    for i in range(k):
+        result.append(g[i*step])
+    return ColourMap(result)
+# # generate k spread colours
+# def generateSpreadColours(k):
+#     result = []
+#     nValues = k ** (1.0/3)
+#     values = []
+#     v = 255
+#     while len(values) < nValues:
+#         values.append(v)
+#         v = v - 255/nValues
+# #         v = (1+v) / 2
+# #     values = [ 255 - x for x in values ]
+#     for red in values:
+#         for green in values:
+#             for blue in values:
+#                 result.append(Colour(red, green, blue))
+#     return ColourMap(result[:k])
 # # generate k spread colours
 # def generateSpreadColours(k):
 #     result = []

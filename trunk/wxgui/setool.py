@@ -194,7 +194,8 @@ class ColourMapEditor(wx.Dialog):
         quantitySizer = wx.BoxSizer(wx.HORIZONTAL)
         # add control buttons
         quantitySizer.Add(wx.StaticText(self, label='number of colours: '), 0)
-        quantitySpin = wx.SpinCtrl(self, -1, str(len(map)))
+        quantitySpin = wx.SpinCtrl(self, -1, str(len(map)),
+                                   style=wx.TE_PROCESS_ENTER)
         quantitySpin.SetRange(1, self.maxColours)
         quantitySizer.Add(quantitySpin, 0)
         mainSizer.Add(quantitySizer, 0, wx.ALIGN_CENTER)
