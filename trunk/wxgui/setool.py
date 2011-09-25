@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 7th 2011 by Fabien Tricoire
+# Last modified: September 25th 2011 by Fabien Tricoire
 #
 import os
 
@@ -153,7 +153,9 @@ class ColourMapStyleEditTool(StyleEditTool, wx.Button):
 
 # dialog used to edit a ColourMap object
 import  wx.lib.scrolledpanel as scrolled
+dummyColour = style.Colour(0,0,0,0)
 class ColourMapEditor(wx.Dialog):
+    maxColours = 100 # arbitrary
     def __init__(self, parent, map):
         wx.Dialog.__init__(self, parent, -1,
                            title='Colour map editor')
@@ -162,12 +164,11 @@ class ColourMapEditor(wx.Dialog):
         # window with the grid...
         panel = scrolled.ScrolledPanel(self, -1, size=(400, 200))
         # colour cells: initialization
-        nColours = max(len(map), 100) # arbitrary
+        nColours = max(len(map), self.maxColours)
         nColumns = 10 # arbitrary too
         self.cells = [ csel.ColourSelect(panel, -1, colour=convertColour(x))
                        for x in map.colours ]
         # complete cells with transparent elements
-        dummyColour = style.Colour(0,0,0,0)
         self.cells += [ csel.ColourSelect(panel, -1,
                                           colour=convertColour(dummyColour))
                         for x in range(nColours-len(self.cells)) ]
@@ -186,8 +187,40 @@ class ColourMapEditor(wx.Dialog):
         gridSizer.Fit(panel)
         panel.SetupScrolling()
         mainSizer.Add(panel, wx.EXPAND | wx.ALIGN_CENTER)
-        # buttons
+        # editing controls
+        # first controls line: select number of colours
         padding = 10
+        mainSizer.Add((0, padding))
+        quantitySizer = wx.BoxSizer(wx.HORIZONTAL)
+        # add control buttons
+        quantitySizer.Add(wx.StaticText(self, label='number of colours: '), 0)
+        quantitySpin = wx.SpinCtrl(self, -1, str(len(map)))
+        quantitySpin.SetRange(1, self.maxColours)
+        quantitySizer.Add(quantitySpin, 0)
+        mainSizer.Add(quantitySizer, 0, wx.ALIGN_CENTER)
+        # second controls line: colour generation and modification
+        mainSizer.Add((0, padding))
+        controlSizer = wx.BoxSizer(wx.HORIZONTAL)
+        # a button to truncate colours
+        truncButton = wx.Button(self, -1, 'Truncate')
+        controlSizer.Add(truncButton, 0)
+        truncButton.Bind(wx.EVT_BUTTON,
+                         lambda x: self.truncColours(quantitySpin.GetValue()))
+        # another button to generate random colours
+        randomButton = wx.Button(self, -1, 'Random')
+        controlSizer.Add((20,0), 1)
+        controlSizer.Add(randomButton, 0)
+        randomButton.Bind(wx.EVT_BUTTON,
+                          lambda x: self.randomColours(quantitySpin.GetValue()))
+        # another button to generate spread colours
+        spreadButton = wx.Button(self, -1, 'Spread')
+        controlSizer.Add((20,0), 1)
+        controlSizer.Add(spreadButton, 0)
+        spreadButton.Bind(wx.EVT_BUTTON,
+                          lambda x: self.spreadColours(quantitySpin.GetValue()))
+        # now we can add standard buttons to validate/cancel
+        mainSizer.Add(controlSizer, 0, wx.ALIGN_CENTER)
+        mainSizer.Add((0,padding), 0)
         mainSizer.Add((0, padding))
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         # add standard buttons
@@ -211,3 +244,22 @@ class ColourMapEditor(wx.Dialog):
         while newColours[-1].alpha == 0:
             del newColours[-1]
         return style.ColourMap(newColours)
+
+    # trunc to the first colours
+    def truncColours(self, n):
+        for i in range(n, len(self.cells)):
+            self.cells[i].SetColour(convertColour(dummyColour))
+
+    # set the set of colours
+    def setColours(self, colours):
+        for i, colour in enumerate(colours.colours):
+            self.cells[i].SetColour(convertColour(colour))
+        self.truncColours(len(colours))
+        
+    # generate random colours
+    def randomColours(self, n):
+        self.setColours(style.generateRandomColours(n))
+
+    # generate spread colours
+    def spreadColours(self, n):
+        self.setColours(style.generateSpreadColours(n))

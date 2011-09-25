@@ -58,17 +58,33 @@ class ColourMap():
 # generate k spread colours
 def generateSpreadColours(k):
     result = []
-    redMask = 2 ** 8 - 1
-    greenMask = redMask << 8
-    blueMask = greenMask << 8
-    step = (2 ** 24 ) / k
-    rawColours = [ step * i for i in range(1, k+1) ]
-    for c in rawColours:
-        red = c & redMask
-        green = (c & greenMask) >> 8
-        blue = (c & blueMask) >> 16
-        result.append(Colour(red, green, blue, 255))
-    return ColourMap(result)
+    nValues = k ** (1.0/3)
+    values = []
+    v = 255
+    while len(values) < nValues:
+        values.append(v)
+        v = v - 255/nValues
+#         v = (1+v) / 2
+#     values = [ 255 - x for x in values ]
+    for red in values:
+        for green in values:
+            for blue in values:
+                result.append(Colour(red, green, blue))
+    return ColourMap(result[:k])
+# # generate k spread colours
+# def generateSpreadColours(k):
+#     result = []
+#     redMask = 2 ** 8 - 1
+#     greenMask = redMask << 8
+#     blueMask = greenMask << 8
+#     step = (2 ** 24 ) / k
+#     rawColours = [ step * i for i in range(1, k+1) ]
+#     for c in rawColours:
+#         red = c & redMask
+#         green = (c & greenMask) >> 8
+#         blue = (c & blueMask) >> 16
+#         result.append(Colour(red, green, blue, 255))
+#     return ColourMap(result)
 
 # generate k random colours
 def generateRandomColours(k):
