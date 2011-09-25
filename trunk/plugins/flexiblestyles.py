@@ -7,6 +7,7 @@ from style import *
 
 import colours
 import shapes
+from colourmapping import *
 
 # This module contains flexible, general-purpose styles: they can be reused for
 # different purposes and are not restrictive when it comes to required
@@ -285,7 +286,9 @@ class FlexibleNodeDisplayer( Style ):
         'y offset': offsetInfo,
         'min. radius': IntParameterInfo(1, 200),
         'max. radius': IntParameterInfo(1, 200),
-        'colour by attribute': BoolParameterInfo(),
+        'node colouring': EnumerationParameterInfo([ 'constant',
+                                                     'palette',
+                                                     'gradient' ]),
         'fill colour': ColourMapParameterInfo(),
         'contour colour': ColourMapParameterInfo(),
         'contour thickness': IntParameterInfo(-1, 20),
@@ -317,14 +320,15 @@ class FlexibleNodeDisplayer( Style ):
         'filter active': False,
         'filter attribute': 'is depot',
         'filter value': 'True',
-        'colour by attribute': False,
+        'node colouring': 'constant',
         'contour thickness': 1,
         }
     def initialise(self):
         # for radius by attribute
-        self.minValue = None
-        # for colour by attribute
-        self.colourValues = None
+        self.computeRadius = None
+        # for node colouring
+        self.fillMapping = None
+        self.contourMapping = None
         # filter value should be a string
         if 'filter value' in self.parameterValue and \
                 not isinstance(self.parameterValue['filter value'], str):
@@ -342,9 +346,14 @@ class FlexibleNodeDisplayer( Style ):
         if parameterName == 'radius attribute' \
                 or parameterName == 'min. radius' \
                 or parameterName == 'max. radius':
-            self.minValue = None
-        if parameterName == 'colour attribute':
-            self.colourValues = None
+            self.computeRadius = None
+        # in case we change the way nodes are coloured: update colour mapping
+        if parameterName == 'node colouring' \
+                or parameterName == 'colour attribute' \
+                or parameterName == 'fill colour' \
+                or parameterName == 'contour colour':
+            self.fillMapping = None
+            self.contourMapping = None
         # in case we change the attribute on which the filter is based,
         # we must compute the list of possible values for this attribute
         if parameterName == 'filter attribute':
@@ -396,35 +405,38 @@ class FlexibleNodeDisplayer( Style ):
                                                  solutionData,
                                                  lambda x: True)
         # compute min and max demand if required
-        if self.minValue is None:
+        if self.computeRadius is None:
             self.rValues = globalNodeAttributeValues(\
                 self.parameterValue['radius attribute'],
                 inputData,
                 solutionData)
-            self.minValue, self.maxValue = min(self.rValues), max(self.rValues)
             self.computeRadius =\
-                util.intervalMapping(self.minValue, self.maxValue,
+                util.intervalMapping(min(self.rValues), max(self.rValues),
                                      self.parameterValue['min. radius'],
                                      self.parameterValue['max. radius'])
-        # enumerate different values for colouring the nodes
-        if self.colourValues is None:
-            self.colourValues = globalNodeAttributeValues(\
+        # enumerate values for colouring the nodes
+        if self.fillMapping is None or self.contourMapping is None:
+            colourValues = globalNodeAttributeValues(\
                 self.parameterValue['colour attribute'],
                 inputData,
                 solutionData)
-            self.colourSet = set(self.colourValues)
-            self.colourMapping = {}
-            for v in self.colourSet:
-                if not v in self.colourMapping:
-                    self.colourMapping[v] = len(self.colourMapping)
+            if self.parameterValue['node colouring'] == 'palette':
+                self.fillMapping = Palette( self.parameterValue['fill colour'],
+                                            colourValues )
+                self.contourMapping = \
+                    Palette( self.parameterValue['contour colour'],
+                             colourValues )
+            elif self.parameterValue['node colouring'] == 'gradient':
+                self.fillMapping = Gradient( self.parameterValue['fill colour'],
+                                             colourValues )
+                self.contourMapping = \
+                    Gradient( self.parameterValue['contour colour'],
+                              colourValues )
+                
         # radius for each node
-        allR = [ self.computeRadius(x) \
-                     if self.parameterValue['radius by attribute'] \
-                     else self.parameterValue['max. radius']
-                 for x in self.rValues ]
-        allX, allY = [], []
+        allX, allY, allR = [], [], []
         # case where each node has the same colour
-        if not self.parameterValue['colour by attribute']:
+        if self.parameterValue['node colouring'] == 'constant':
             style = DrawingStyle( \
                 self.parameterValue['contour colour'][0],
                 self.parameterValue['fill colour'][0],
@@ -432,9 +444,9 @@ class FlexibleNodeDisplayer( Style ):
         # otherwise we must use a different style for each node
         else:
             style = []
-        for node, filterValue, colourValue in zip(inputData.nodes,
-                                                  self.fValues,
-                                                  self.colourValues):
+        for node, filterValue, rValue in zip(inputData.nodes,
+                                             self.fValues,
+                                             self.rValues):
             if nodePredicate and not nodePredicate(node):
                 continue
             # only display nodes matching the filter
@@ -447,11 +459,17 @@ class FlexibleNodeDisplayer( Style ):
                             self.parameterValue['x offset'])
                 allY.append(convertY(node['y']) +
                             self.parameterValue['y offset'])
-                if self.parameterValue['colour by attribute']:
-                    index = self.colourMapping[colourValue]
+                allR.append(self.computeRadius(rValue) \
+                                if self.parameterValue['radius by attribute'] \
+                                else self.parameterValue['max. radius'])
+                if self.parameterValue['node colouring'] != 'constant':
+                    value = globalNodeAttributeValue(self.parameterValue\
+                                                         ['colour attribute'],
+                                                     node,
+                                                     solutionData)
                     style.append(DrawingStyle(\
-                            self.parameterValue['contour colour'][index],
-                            self.parameterValue['fill colour'][index],
+                            self.contourMapping[value],
+                            self.fillMapping[value],
                             lineThickness = \
                                 self.parameterValue['contour thickness']))
         # determine shape to use
