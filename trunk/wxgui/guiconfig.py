@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: July 31st 2011 by Fabien Tricoire
+# Last modified: September 25th 2011 by Fabien Tricoire
 #
 # this module stores and extracts information regarding the gui (e.g. position
 # and layout)
@@ -42,7 +42,7 @@ def initializeConfig():
 
 def setFactoryPreferences():
     preferences['save layout'] = True
-    preferences['save session'] = False
+    preferences['save session'] = True
 
 def savePreferences():
     try:

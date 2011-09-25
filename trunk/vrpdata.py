@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: September 22nd 2011 by Fabien Tricoire
+# Last modified: September 25th 2011 by Fabien Tricoire
 #
 # -*- coding: utf-8 -*-
 # This file contains all routines to encapsulate and read all kinds of VRP data,
@@ -236,6 +236,8 @@ class VrpSolutionData(object):
                 and 'due date' in vrpData.nodeAttributes \
                 and not 'start of service' in self.nodeAttributes:
             self.computeSimpleScheduling(vrpData)
+        # enrich solution data
+        self.generateMetaData(vrpData)
 
     # generate information on nodes if it's missing
     def populateNodeData(self, vrpData):
@@ -333,6 +335,16 @@ class VrpSolutionData(object):
                 currentTime += vrpData.nodes[index]['service time']
                 self.nodes[index]['end of service'] = currentTime
                 currentTime += vrpData.travelTime[index][sequence[i+1]]
+
+    # enrich solution data
+    def generateMetaData(self, vrpData):
+        self.attributes['# routes'] = len(self.routes)
+        totalLength = 0
+        for route in self.routes:
+            for a, b in zip(route['node sequence'][:-1],
+                            route['node sequence'][1:]):
+                totalLength += vrpData.travelTime[a][b]
+        self.attributes['travel time'] = totalLength
             
 # this class encapsulates an empty solution
 # this is useful for cases where we only want to display vrp data

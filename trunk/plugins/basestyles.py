@@ -416,6 +416,7 @@ class SolutionAttributesDisplayer( Style ):
                       'x offset': IntParameterInfo(-50, 50),
                       'y offset': IntParameterInfo(-50, 50),
                       'vertical padding': IntParameterInfo(0, 50),
+                      'horizontal padding': IntParameterInfo(-50, 50),
                       }
     defaultValue = { 'font size': 12,
                      'foreground colour': colours.darkpurple,
@@ -423,7 +424,8 @@ class SolutionAttributesDisplayer( Style ):
                      'corner': 'top left',
                      'x offset': 0,
                      'y offset': 0,
-                     'vertical padding': 12,
+                     'vertical padding': 6,
+                     'horizontal padding': 0,
                      'font family': 'Verdana',
                      'font style': 'normal',
                      }
@@ -442,8 +444,8 @@ class SolutionAttributesDisplayer( Style ):
         # now we compute the length in points.
         # we don't really have a way to do this so we take a heuristic
         # upper bound
-        wLPoints = widthLeft * self.parameterValue['font size'] / 1.5
-        wRPoints = widthRight * self.parameterValue['font size'] / 1.5
+        wLPoints = widthLeft * self.parameterValue['font size'] / 1.7
+        wRPoints = widthRight * self.parameterValue['font size'] / 1.7
         # dimensions of the rectangle hull around the text we want to display
         width = wLPoints + wRPoints
         height = \
@@ -475,7 +477,9 @@ class SolutionAttributesDisplayer( Style ):
                                  y + self.parameterValue['y offset'],
                                  font, foreground, background)
             canvas.drawFancyText(str(solutionData.attributes[attribute]),
-                                 x + wLPoints + self.parameterValue['x offset'],
+                                 x + wLPoints + \
+                                     self.parameterValue['horizontal padding']\
+                                     + self.parameterValue['x offset'],
                                  y + self.parameterValue['y offset'],
                                  font, foreground, background)
             y -= self.parameterValue['font size'] + \
