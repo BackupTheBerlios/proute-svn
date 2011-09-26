@@ -497,7 +497,7 @@ class FlexibleNodeDisplayer( Style ):
         # we can use the faster method
         # otherwise we have to display each polygon separately
         if self.parameterValue['radius by attribute'] or \
-                self.parameterValue['colour by attribute']:
+                self.parameterValue['node colouring'] != 'constant':
             for i, (x, y, r) in enumerate(zip(allX, allY, allR)):
                 canvas.drawShape(shape, x, y, r,
                                  style[i] \

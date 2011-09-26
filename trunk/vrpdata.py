@@ -314,9 +314,9 @@ class VrpSolutionData(object):
             if not 'node sequence' in route:
                 route['node sequence'] = [ x['from']
                                            for x in route['arcs'] ] + \
-                    route['arcs'][-1]['to']
-            # now the previous method can be used for generating nodes
-            self.populateRouteDataFromNodeSequence()
+                    [ route['arcs'][-1]['to'] ]
+        # now the previous method can be used for generating nodes
+        self.populateRouteDataFromNodeSequence()
 
     # generate scheduling information
     # precondition: release time and due date are defined numeric values

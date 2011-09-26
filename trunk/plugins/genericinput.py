@@ -117,6 +117,8 @@ class PSFSolutionData(vrpdata.VrpSolutionData):
                     elif fields[0] == 'arc':
                         arcFields = fields[1:]
                         self.routeArcAttributes += arcFields
+                        self.routeArcAttributes = \
+                            [ x for x in set(self.routeArcAttributes) ]
                     # node information format
                     elif fields[0] == 'node':
                         nodeFields = fields[1:]
