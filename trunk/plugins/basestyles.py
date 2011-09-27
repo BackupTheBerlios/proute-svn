@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 16th 2011 by Fabien Tricoire
+# Last modified: September 27th 2011 by Fabien Tricoire
 #
 from style import *
 
@@ -103,7 +103,7 @@ class NodeLabelDisplayer( Style ):
         # one-time-only block
         if not 'attribute' in self.parameterInfo:
             self.parameterInfo['attribute'] = \
-                NodeInputAttributeParameterInfo(inputData)
+                NodeGlobalAttributeParameterInfo(inputData, solutionData)
         font = Font(self.parameterValue['font size'],
                     self.parameterValue['font family'],
                     self.parameterValue['font style'])
@@ -115,7 +115,10 @@ class NodeLabelDisplayer( Style ):
                     self.parameterValue['hide unused nodes'] and \
                     not solutionData.nodes[node['index']]['used']:
                 continue
-            labels.append(str(node[self.parameterValue['attribute']]))
+            labels.append(str(globalNodeAttributeValue(self.parameterValue\
+                                                           ['attribute'],
+                                                       node,
+                                                       solutionData)))
             xs.append(convertX(node['x']) + self.parameterValue['x offset'])
             ys.append(convertY(node['y']) + self.parameterValue['y offset'])
         canvas.drawTexts(labels, xs, ys, font, foreground, background)
@@ -179,7 +182,7 @@ class NodeDemandDisplayer( Style ):
 
 # Basic style for a solution data: draw arcs
 class RouteDisplayer( Style ):
-    description = 'routes'
+    description = 'route arcs'
     parameterInfo = { 
         'arc colour': ColourParameterInfo(),
         'thickness': IntParameterInfo(0, 20),

@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: September 21st 2011 by Fabien Tricoire
+# Last modified: September 27th 2011 by Fabien Tricoire
 #
 from style import *
 
@@ -173,22 +173,26 @@ class NodeAttributeAsRectangleDisplayer( Style ):
                 return (isinstance(x, int) or isinstance(x, float)) and \
                     not isinstance(x, bool)
             self.parameterInfo['attribute'] = \
-                NodeInputAttributeParameterInfo(inputData, acceptable)
-        # only perform painting if the selected attributes are available
-        if not self.parameterValue['attribute'] in inputData.nodeAttributes:
-            return
+                NodeGlobalAttributeParameterInfo(inputData,
+                                                 solutionData,
+                                                 acceptable)
+#         # only perform painting if the selected attributes are available
+#         if not self.parameterValue['attribute'] in inputData.nodeAttributes:
+#             return
         # first compute min and max demand if it's the first time we're here
         if self.minValue is None:
-            values = [ node[self.parameterValue['attribute']]
-                        for node in inputData.nodes ]
-            self.minValue, self.maxValue = min(values), max(values)
+            self.values = globalNodeAttributeValues(\
+                self.parameterValue['attribute'],
+                inputData,
+                solutionData)
+            self.minValue, self.maxValue = min(self.values), max(self.values)
             self.computeHeight =\
                 util.intervalMapping(self.minValue, self.maxValue,
                                      self.parameterValue['min. height'],
                                      self.parameterValue['max. height'])
         # second only continue if an attribute is specified
         allX, allY, allW, allH = [], [], [], []
-        for node in inputData.nodes:
+        for node, value in zip(inputData.nodes, self.values):
             if (nodePredicate and not nodePredicate(node)) or node['is depot']:
                 continue
             else:
@@ -197,8 +201,7 @@ class NodeAttributeAsRectangleDisplayer( Style ):
                 allY.append(convertY(node['y']) +
                             self.parameterValue['y offset'])
                 allW.append(self.parameterValue['width'])
-                allH.append(self.computeHeight(\
-                        node[self.parameterValue['attribute']]))
+                allH.append(self.computeHeight(value))
         style = DrawingStyle(self.parameterValue['colour'],
                              self.parameterValue['colour'])
         canvas.drawRectangles(allX, allY, allW, allH, style,

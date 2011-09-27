@@ -1,7 +1,7 @@
 #
-# File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
+# File created around August 2nd 2011 by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 6th 2011 by Fabien Tricoire
+# Last modified: September 27th 2011 by Fabien Tricoire
 #
 # -*- coding: utf-8 -*-
 
@@ -80,6 +80,8 @@ class PSFSolutionData(vrpdata.VrpSolutionData):
     def loadData(self, fName, vrpData):
         # all routes in the solution (lists of indices)
         self.routes = []
+        # extra solution data for all nodes
+        self.nodes = [ { 'index': x['index'] } for x in vrpData.nodes ]
         stage = 'header'
         # process each line...
         for line in file.readlines(file(fName)):
@@ -113,16 +115,28 @@ class PSFSolutionData(vrpdata.VrpSolutionData):
                     if fields[0] == 'route':
                         routeFields = fields[1:]
                         self.routeAttributes += routeFields
+                        self.routeAttributes = \
+                            [ x for x in set(self.routeAttributes) ]
                     # arc information format
                     elif fields[0] == 'arc':
                         arcFields = fields[1:]
                         self.routeArcAttributes += arcFields
                         self.routeArcAttributes = \
                             [ x for x in set(self.routeArcAttributes) ]
+                    # route-node information format
+                    elif fields[0] == 'routenode':
+                        routeNodeFields = fields[1:]
+                        self.routeNodeAttributes += routeNodeFields
+                        self.routeNodeAttributes = \
+                            [ x for x in set(self.routeNodeAttributes) ]
+                        # logically after this line we switch to content
+                        thisRoute = {}
                     # node information format
                     elif fields[0] == 'node':
                         nodeFields = fields[1:]
-                        self.routeNodeAttributes += nodeFields
+                        self.nodeAttributes += nodeFields
+                        self.nodeAttributes = \
+                            [ x for x in set(self.nodeAttributes) ]
                         # logically after this line we switch to content
                         thisRoute = {}
                         stage = 'content'
@@ -151,15 +165,23 @@ class PSFSolutionData(vrpdata.VrpSolutionData):
                         if not 'arcs' in thisRoute:
                             thisRoute['arcs'] = []
                         thisRoute['arcs'].append(thisArc)
+                    elif tokens[0] == 'routenode':
+                        # consistency check
+                        if len(tokens[1:]) != len(routeNodeFields):
+                            raise vrpexceptions.VrpInputFileFormatException(\
+                                'PSF', fName)
+                        thisNode = fillDict(routeNodeFields, tokens[1:])
+                        # finally we add the node information to the route
+                        if not 'nodes' in thisRoute:
+                            thisRoute['nodes'] = []
+                        thisRoute['nodes'].append(thisNode)
                     elif tokens[0] == 'node':
                         # consistency check
                         if len(tokens[1:]) != len(nodeFields):
                             raise vrpexceptions.VrpInputFileFormatException(\
                                 'PSF', fName)
                         thisNode = fillDict(nodeFields, tokens[1:])
-                        # finally we add the arc to the route
-                        if not 'nodes' in thisRoute:
-                            thisRoute['nodes'] = []
-                        thisRoute['nodes'].append(thisArc)
+                        # finally we add the node information
+                        self.nodes[thisNode['index']] = thisNode
         # let's not forget the last route
         self.routes.append(thisRoute)

@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: July 29th 2011 by Fabien Tricoire
+# Last modified: September 27th 2011 by Fabien Tricoire
 #
 import sys
 
@@ -11,6 +11,7 @@ import wx.grid
 import vrpdata
 import wxcanvas
 from vrppanel import VrpPanel
+import style
 
 nodeAttributeColWidth = 120
 nodeValueColWidth = 90
@@ -138,16 +139,16 @@ class NodeInputInformationList(wx.ListCtrl):
         # store the list of attributes for this type of VRP, starting
         # with the most common attributes
         attributes = vrpData.nodeAttributes + \
-            [ x
+            [ '+' + x
               for x in solutionData.nodeAttributes
               if x != 'index' ]
         self.sortedAttributes = attributes
 #         self.sortedAttributes = vrp.VrpInputData().nodeAttributes + \
 #             vrp.VrpSolutionData().nodeAttributes
         alreadyAdded = set(self.sortedAttributes)
-        for a in attributes:
-            if not a in alreadyAdded:
-                self.sortedAttributes.append(a)
+#         for a in attributes:
+#             if not a in alreadyAdded:
+#                 self.sortedAttributes.append(a)
         # set column names
         self.InsertColumn(0, 'Node attribute', width=nodeAttributeColWidth)
         self.InsertColumn(1, 'Value', width=nodeValueColWidth)
@@ -171,12 +172,13 @@ class NodeInputInformationList(wx.ListCtrl):
         else:
             nodeSol = solutionData.nodes[node['index']]
             for index in range(self.GetItemCount()):
-                if self.GetItemText(index) in node:
+                try:
                     self.values[self.GetItemText(index)] = \
-                        node[self.GetItemText(index)]
-                elif self.GetItemText(index) in nodeSol:
-                    self.values[self.GetItemText(index)] = \
-                        nodeSol[self.GetItemText(index)]
+                        style.globalNodeAttributeValue(self.GetItemText(index),
+                                                       node,
+                                                       solutionData)
+                except Exception as e:
+                    self.values[self.GetItemText(index)] = ''
                 self.SetStringItem(index, 1,
                                    str(self.values[self.GetItemText(index)]))
 
