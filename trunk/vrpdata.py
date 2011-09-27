@@ -225,7 +225,7 @@ class VrpSolutionData(object):
                                                             fName)
         # in case the route information provided by loadData() is not complete:
         # generate the missing data e.g. generate node sequence from arcs
-        self.populateRouteData()
+        self.populateRouteData(vrpData)
         # in case the route information provided by loadData() is inconsistent:
         # remove inconsistencies
         self.filterRouteData()
@@ -260,7 +260,7 @@ class VrpSolutionData(object):
                 node['used'] = node['index'] in visitedNodes
         
     # generate missing data from route information
-    def populateRouteData(self):
+    def populateRouteData(self, vrpData):
         # assumption: all the routes are constructed in the same way
         if self.routes:
             if 'node sequence' in self.routes[0]:
@@ -268,7 +268,7 @@ class VrpSolutionData(object):
             elif 'node information' in self.routes[0]:
                 self.populateRouteDataFromNodes()
             elif 'arcs' in self.routes[0]:
-                self.populateRouteDataFromArcs()
+                self.populateRouteDataFromArcs(vrpData)
 
     # generate missing data from route information
     def filterRouteData(self):
@@ -308,13 +308,28 @@ class VrpSolutionData(object):
         self.populateRouteDataFromNodeSequence()
                 
     # generate node sequence information and node information from arcs
-    def populateRouteDataFromArcs(self):
+    def populateRouteDataFromArcs(self, vrpData):
+        # reconstruct node sequence by filling an array of successors
+        def sequenceFromArcs(arcs):
+            successor = [ -1 for x in vrpData.nodes ]
+            startingPoint = arcs[0]['from']
+            for arc in arcs:
+                successor[arc['from']] = arc['to']
+                if vrpData.nodes[arc['from']]['is depot']:
+                    startingPoint = arc['from']
+            # now the successors are filled, we just need to follow them
+            sequence = [ startingPoint ]
+            next = successor[startingPoint]
+            while next != -1 and next != startingPoint:
+                sequence.append(next)
+                next = successor[next]
+            if next == startingPoint:
+                sequence.append(next)
+            return sequence
         for route in self.routes:
             # create node information if non-existing
             if not 'node sequence' in route:
-                route['node sequence'] = [ x['from']
-                                           for x in route['arcs'] ] + \
-                    [ route['arcs'][-1]['to'] ]
+                route['node sequence'] = sequenceFromArcs(route['arcs'])
         # now the previous method can be used for generating nodes
         self.populateRouteDataFromNodeSequence()
 
