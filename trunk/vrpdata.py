@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: September 25th 2011 by Fabien Tricoire
+# Last modified: September 28th 2011 by Fabien Tricoire
 #
 # -*- coding: utf-8 -*-
 # This file contains all routines to encapsulate and read all kinds of VRP data,
@@ -86,7 +86,8 @@ class VrpInputData(object):
         try:
             self.travelTime
         except Exception as e:
-            self.computeEuclideanTravelTimes()
+            if len(self.nodes) < 500: # arbitrary
+                self.computeEuclideanTravelTimes()
         # we must update the bounding box of all nodes we just read
         self.updateBoundingBox()
         # we also create a neighbour finder
@@ -354,12 +355,15 @@ class VrpSolutionData(object):
     # enrich solution data
     def generateMetaData(self, vrpData):
         self.attributes['# routes'] = len(self.routes)
-        totalLength = 0
-        for route in self.routes:
-            for a, b in zip(route['node sequence'][:-1],
-                            route['node sequence'][1:]):
-                totalLength += vrpData.travelTime[a][b]
-        self.attributes['travel time'] = totalLength
+        try:
+            totalLength = 0
+            for route in self.routes:
+                for a, b in zip(route['node sequence'][:-1],
+                                route['node sequence'][1:]):
+                    totalLength += vrpData.travelTime[a][b]
+            self.attributes['travel time'] = totalLength
+        except Exception as e:
+            pass
             
 # this class encapsulates an empty solution
 # this is useful for cases where we only want to display vrp data

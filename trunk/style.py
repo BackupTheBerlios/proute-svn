@@ -209,7 +209,8 @@ class Style( object ):
             'parameters=' + str(self.parameterValue) + ', ' + \
             'description=\'' + self.description +  '\', ' + \
             ')'
-            
+
+    # can be overloaded
     def setParameter(self, parameterName, parameterValue):
         self.parameterValue[parameterName] = parameterValue
 

@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 18th 2011 by Fabien Tricoire
+# Last modified: September 28th 2011 by Fabien Tricoire
 #
 import os
 import string
@@ -320,7 +320,10 @@ class StyleSheet(object):
     def export(self, name, defaultFor=[]):
         print 'exporting with name=', name
         # do not export to a module with the same name as a builtin module
-        if os.path.exists(os.path.join(config.builtinPluginDir, name + '.py')):
+        if os.path.exists(\
+            os.path.join(config.builtinPluginDir, name + '.py')) or \
+            os.path.exists(\
+            os.path.join(config.userPluginDir, name + '.py')):
             outputFileName = os.path.join(config.userSheetDir,
                                           'user_' + name + '.py')
         else:
@@ -369,7 +372,8 @@ class StyleSheet(object):
         f.write(indent2 + '# initialize styles' + '\n')
         f.write(indent2 + 'self.styles = []' + '\n')
         for i, s in enumerate(self.styles):
-            f.write(indent2 + '# style ' + str(i+1) + '\n')
+            f.write(indent2 + '# style ' + str(i+1) + ': ' + \
+                        s.description + '\n')
             f.write(indent2 + 'self.styles.append(' + str(s) + ')' + '\n')
         # close the file..
         f.close()

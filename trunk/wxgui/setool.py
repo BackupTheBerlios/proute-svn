@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: September 25th 2011 by Fabien Tricoire
+# Last modified: September 28th 2011 by Fabien Tricoire
 #
 import os
 
@@ -101,7 +101,7 @@ class ChoiceListStyleEditTool(StyleEditTool, wx.Choice):
         self.Bind(wx.EVT_CHOICE , self.modifyValue)
     #
     def getValue(self):
-        return self.GetStringSelection()
+        return str(self.GetStringSelection())
     #
     def update(self):
         newValues = \
