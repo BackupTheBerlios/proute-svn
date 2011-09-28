@@ -312,7 +312,7 @@ class FlexibleNodeDisplayer( Style ):
         'y offset': 0,
         'min. radius': 3,
         'max. radius': 10,
-        'fill colour': ColourMap([colours.darkpurple]),
+        'fill colour': ColourMap([colours.funkygreen]),
         'contour colour': ColourMap([colours.black]),
         'shape type': 'polygon',
         'number of edges': 3,
