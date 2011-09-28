@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: September 27th 2011 by Fabien Tricoire
+# Last modified: September 28th 2011 by Fabien Tricoire
 #
 from style import *
 
@@ -435,7 +435,6 @@ class FlexibleNodeDisplayer( Style ):
                 self.contourMapping = \
                     Gradient( self.parameterValue['contour colour'],
                               colourValues )
-                
         # radius for each node
         allX, allY, allR = [], [], []
         # case where each node has the same colour

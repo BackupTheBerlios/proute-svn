@@ -1,7 +1,7 @@
 #
 # File created September 24th by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: September 25th 2011 by Fabien Tricoire
+# Last modified: September 28th 2011 by Fabien Tricoire
 #
 import util
 import style
@@ -21,7 +21,15 @@ class ColourMapping:
         self.process()
         
     def __getitem__(self, x):
-        return self.getColour(x)
+        try:
+            return self.getColour(x)
+        except Exception as e:
+            self.addItem(x)
+            return self.getColour(x)
+
+    def addItem(self, item):
+        self.values.append(item)
+        self.process()
 
 class Palette(ColourMapping):
     def process(self):
