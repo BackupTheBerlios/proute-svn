@@ -24,7 +24,7 @@ class CVRPInputData(vrpdata.VrpInputData):
         cpt = 0
         for line in file.readlines(file(fName)):
             line = line.split()
-            if len(line) == 4:
+            if len(line) > 3:
                 self.attributes['directed'] = False
                 self.attributes['capacity'] = string.atoi(line[1])
                 self.attributes['maximum duration'] = string.atoi(line[2])
