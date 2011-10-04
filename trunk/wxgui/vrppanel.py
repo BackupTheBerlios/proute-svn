@@ -54,14 +54,14 @@ class VrpPanel(wx.Panel):
         self.dragX, self.dragY = None, None
         self.Bind(wx.EVT_LEFT_DOWN, self.storePosition)
         self.Bind(wx.EVT_LEFT_UP, self.resetPosition)
-        # also drag the map with the arrow keys
-        self.Bind(wx.EVT_CHAR, self.onChar)
         # double-click handler
         self.Bind(wx.EVT_LEFT_DCLICK, self.onDoubleClick)
         # debug: display coordinates on right click
         self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
         # zoom using the scroll wheel
         self.Bind(wx.EVT_MOUSEWHEEL, self.onMouseWheel)
+        # also navigate the map with the arrow keys
+        self.Bind(wx.EVT_CHAR, self.onChar)
         # useful to build file name for saving a same panel multiple times
         self.nTimesSaved = 0
         

@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: September 28th 2011 by Fabien Tricoire
+# Last modified: October 4th 2011 by Fabien Tricoire
 #
 import os
 import string
@@ -40,7 +40,8 @@ class StyleSheet(object):
     defaultFor = []
     def __init__(self,
                  keepAspectRatio=True, styles=None, currentBox=None,
-                 grid=False, gridRouteAttribute=None, gridLines=True,
+                 grid=False, gridRouteAttribute=None, filterNodesInGrid=False,
+                 gridLines=True,
                  nColumns=None,
                  cellTitle=True, cellTitleFormat='%a %v'):
         if currentBox:
@@ -52,6 +53,7 @@ class StyleSheet(object):
         # attribute on which grid should be built
         self.grid = grid
         self.gridRouteAttribute = gridRouteAttribute
+        self.filterNodesInGrid = filterNodesInGrid
         # grid decoration
         self.drawGridLines = gridLines
         # preferred number of columns in the grid or None for default
@@ -240,7 +242,7 @@ class StyleSheet(object):
                 self.nColumnsInGrid = \
                     int(ceil(sqrt(gridSize * wPrime) / wPrime))
             self.nRowsInGrid = 1 + (gridSize-1) / self.nColumnsInGrid
-            # compute number of rows from numberof columns
+            # compute number of rows from number of columns
             nColumns = self.nColumnsInGrid
             nRows = self.nRowsInGrid
         # case where we don't use a grid
@@ -295,6 +297,7 @@ class StyleSheet(object):
                                                          inputData,
                                                          margin)
             # predicate if required for grid
+            tmpNodePredicate = lambda(x): True
             if not self.grid:
                 newRoutePredicate = routePredicate
             else:
@@ -303,11 +306,18 @@ class StyleSheet(object):
                 newRoutePredicate = \
                     lambda(route): tmpPredicate(route) and \
                     (routePredicate is None or routePredicate(route))
+                # in case we also need to filter nodes
+                if self.filterNodesInGrid:
+                    tmpNodePredicate = \
+                        util.makeNodeInRoutePredicate(solutionData,
+                                                      newRoutePredicate)
+            newNodePredicate = lambda(node): tmpNodePredicate(node) and\
+                (nodePredicate is None or nodePredicate(node))
             # display all styles sequentially
             for style in self.styles:
                 style.paintData(inputData, solutionData,
                                 canvas, convertX, convertY,
-                                nodePredicate,
+                                newNodePredicate,
                                 newRoutePredicate,
                                 arcPredicate,
                                 (revX(xmin-padding+2), revY(ymin-padding+2),
@@ -385,6 +395,7 @@ class StyleSheet(object):
             '(keepAspectRatio=' + str(self.keepAspectRatio) + \
             ', grid=' + str(self.grid) + \
             ', gridRouteAttribute=\'' + str(self.gridRouteAttribute) + '\'' + \
+            ', filterNodesInGrid=' + str(self.filterNodesInGrid) + '' + \
             ', gridLines=' + str(self.drawGridLines) + \
             ', nColumns=' + str(self.nColumnsInGrid) + \
             ', cellTitle=' + str(self.displayCellTitle) + \

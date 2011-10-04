@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: July 31st 2011 by Fabien Tricoire
+# Last modified: October 4th 2011 by Fabien Tricoire
 #
 import os
 import cPickle
@@ -33,7 +33,16 @@ def intervalMappingModulo(inputMin, inputMax,
 # specified attribute
 def makeRoutePredicate(attribute, value):
     return lambda(route): route[attribute] == value
-        
+
+# return a predicate returning true if the node is present in a route of
+# solutionData satisfying routePredicate
+def makeNodeInRoutePredicate(solutionData, routePredicate):
+    acceptableIndices = set()
+    for route in solutionData.routes:
+        if routePredicate(route):
+            for i in route['node sequence']:
+                acceptableIndices.add(i)
+    return lambda(node): node['index'] in acceptableIndices
 
 # return the end index of the longest common substring starting at index 0
 def longestStartingSubstringIndex(strings):

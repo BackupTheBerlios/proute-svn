@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: July 29th 2011 by Fabien Tricoire
+# Last modified: October 4th 2011 by Fabien Tricoire
 #
 import os
 import sys
@@ -51,7 +51,17 @@ class GridManager(wx.Frame):
         mainSizer.Add(self.parameterChoice, 0,
                       wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
         self.Bind(wx.EVT_CHOICE, self.parameterHandler, self.parameterChoice)
-        # third line: grid geometry
+        # third line: also filter nodes?
+        label = wx.StaticText(self, -1, 'Filter nodes too')
+        self.filterNodesBox = wx.CheckBox(self, -1)
+        self.filterNodesBox.SetValue(self.styleSheet.filterNodesInGrid)
+        mainSizer.Add(label, 0,
+                      wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        mainSizer.Add(self.filterNodesBox, 0,
+                      wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        self.Bind(wx.EVT_CHECKBOX,
+                  self.filterNodesTooHandler, self.filterNodesBox)
+        # fourth line: grid geometry
         label = wx.StaticText(self, -1, 'Number of columns')
         self.nColumnsControl = wx.SpinCtrl(self, -1)
         self.nColumnsControl.SetRange(1, gridSize)
@@ -63,7 +73,7 @@ class GridManager(wx.Frame):
         mainSizer.Add(self.nColumnsControl, 0,
                       wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
         self.Bind(wx.EVT_SPINCTRL, self.geometryHandler, self.nColumnsControl)
-        # fourth line: display grid lines?
+        # fifth line: display grid lines?
         label = wx.StaticText(self, -1, 'Draw grid lines')
         self.drawGridLinesBox = wx.CheckBox(self, -1)
         self.drawGridLinesBox.SetValue(self.styleSheet.drawGridLines)
@@ -73,7 +83,7 @@ class GridManager(wx.Frame):
                       wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
         self.Bind(wx.EVT_CHECKBOX,
                   self.decorationHandler, self.drawGridLinesBox)
-        # fifth line: display cell title?
+        # sixth line: display cell title?
         label = wx.StaticText(self, -1, 'Title for each cell')
         self.cellTitleBox = wx.CheckBox(self, -1)
         self.cellTitleBox.SetValue(self.styleSheet.displayCellTitle)
@@ -83,7 +93,7 @@ class GridManager(wx.Frame):
                       wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
         self.Bind(wx.EVT_CHECKBOX,
                   self.cellTitleActivationHandler, self.cellTitleBox)
-        # sixth line: cell title format
+        # seventh line: cell title format
         label = wx.StaticText(self, -1, 'Cell title format')
         self.cellTitleFormat = wx.TextCtrl(self, size=(150,-1))
         self.cellTitleFormat.SetValue(self.styleSheet.cellTitleFormat)
@@ -142,3 +152,9 @@ class GridManager(wx.Frame):
         self.styleSheet.cellTitleFormat = self.cellTitleFormat.GetValue()
         # repaint using the new parameters
         events.postStyleSheetUpdateEvent(self)
+
+    def filterNodesTooHandler(self, event):
+        # tell the stylesheet to filter nodes too
+        self.styleSheet.filterNodesInGrid = self.filterNodesBox.GetValue()
+        # repaint using the new parameters
+        events.postStyleSheetUpdateEvent(self)        
