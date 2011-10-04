@@ -366,6 +366,8 @@ class StyleSheet(object):
         f.write(indent2 + 'self.grid = ' + str(self.grid) + '\n')
         f.write(indent2 + 'self.gridRouteAttribute = \'' + \
                     str(self.gridRouteAttribute) + '\'\n')
+        f.write(indent2 + 'self.filterNodesInGrid = ' + \
+                    str(self.filterNodesInGrid) + '\n')
         f.write(indent2 + 'self.drawGridLines = ' + \
                     str(self.drawGridLines) + '\n')
 #         f.write(indent2 + 'self.nColumnsInGrid = ' + \
