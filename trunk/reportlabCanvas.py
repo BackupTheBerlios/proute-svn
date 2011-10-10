@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: September 21st 2011 by Fabien Tricoire
+# Last modified: October 11th 2011 by Fabien Tricoire
 #
 import random
 from math import *
@@ -142,6 +142,21 @@ class ReportlabCanvas(Canvas):
         self.drawCircle(x2, y2, (thickness) /2.0, style)
         style.lineThickness = thickness
         style.fillColour = oldFillcolour
+
+    # draw lines with the same style
+    def drawLines(self, x1s, y1s, x2s, y2s, style):
+        self.setDrawingStyle(style)
+        for x1, y1, x2, y2 in zip(x1s, y1s, x2s, y2s):
+            self.canvas.line(x1, y1, x2, y2)
+            # smooth line joints
+            thickness = getThickness(style)
+            style.lineThickness = 0.0
+            oldFillcolour = style.fillColour
+            style.fillColour = style.lineColour
+            self.drawCircle(x1, y1, (thickness) /2.0, style)
+            self.drawCircle(x2, y2, (thickness) /2.0, style)
+            style.lineThickness = thickness
+            style.fillColour = oldFillcolour
 
     # draw a polyline
     # x and y are lists

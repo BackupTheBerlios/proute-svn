@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: August 7th 2011 by Fabien Tricoire
+# Last modified: October 11th 2011 by Fabien Tricoire
 #
 import sys
 from math import *
@@ -157,6 +157,12 @@ class WxCanvas(canvas.Canvas):
     def drawLine(self, x1, y1, x2, y2, style):
         self.setDrawingStyle(style)
         self.dc.DrawLine(x1, self.height-y1, x2, self.height-y2)
+
+    # draw a line
+    def drawLines(self, x1s, y1s, x2s, y2s, style):
+        self.setDrawingStyle(style)
+        for x1, y1, x2, y2 in zip(x1s, y1s, x2s, y2s):
+            self.dc.DrawLine(x1, self.height-y1, x2, self.height-y2)
 
     # draw a polyline
     # x and y are lists

@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: September 20th 2011 by Fabien Tricoire
+# Last modified: October 11th 2011 by Fabien Tricoire
 #
 import util
 import shapes
@@ -60,6 +60,10 @@ class Canvas:
     # draw a line
     def drawLine(self, x1, y1, x2, y2, style):
         print 'Error: method drawLine not implemented in backend'
+
+    # draw a line
+    def drawLines(self, x1s, y1s, x2s, y2s, style):
+        print 'Error: method drawLines not implemented in backend'
 
     # draw a polyline
     # x and y are lists

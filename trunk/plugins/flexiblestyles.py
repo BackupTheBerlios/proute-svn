@@ -1,7 +1,7 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: September 28th 2011 by Fabien Tricoire
+# Last modified: Octber 11th 2011 by Fabien Tricoire
 #
 from style import *
 
@@ -279,7 +279,7 @@ class NodeListAttributeAsRectanglesDisplayer(NodeAttributeAsRectangleDisplayer):
             canvas.drawRectangles(allX, allY, allW, allH, style,
                                   referencePoint='southeast')
 
-# Display a rectangle proportional to the demand for each node
+# Display a node with flexible appearance
 class FlexibleNodeDisplayer( Style ):
     description = 'customizable nodes'
     # used multiple times
@@ -511,3 +511,141 @@ class FlexibleNodeDisplayer( Style ):
                               self.parameterValue['max. radius'],
                               style,
                               self.parameterValue['angle'])
+
+# Display an arc with variable style
+class FlexibleArcDisplayer( Style ):
+    description = 'customizable arcs'
+    parameterInfo = {
+        'min. thickness': IntParameterInfo(1, 200),
+        'max. thickness': IntParameterInfo(1, 200),
+        'colouring': EnumerationParameterInfo([ 'constant',
+                                                'palette',
+                                                'gradient' ]),
+        'arc colour': ColourMapParameterInfo(),
+        'thickness by attribute': BoolParameterInfo(),
+        'draw depot arcs': BoolParameterInfo(),
+        }
+    defaultValue = {
+        'min. thickness': 1,
+        'max. thickness': 3,
+        'colouring': 'constant',
+        'arc colour': ColourMap([colours.black]),
+        'thickness by attribute': False,
+        'draw depot arcs': True,
+        }
+    def initialise(self):
+        # for thickness by attribute
+        self.computeThickness = None
+        # for arc colouring
+        self.colourMapping = None
+    #
+    def setParameter(self, parameterName, parameterValue):
+        Style.setParameter(self, parameterName, parameterValue)
+        if parameterName == 'max. thickness' and \
+                parameterValue < self.parameterValue['min. thickness']:
+            Style.setParameter(self, 'min. thickness', parameterValue)
+        if parameterName == 'min. thickness' and \
+                parameterValue > self.parameterValue['max. thickness']:
+            Style.setParameter(self, 'max. thickness', parameterValue)
+        if parameterName == 'thickness attribute' \
+                or parameterName == 'min. thickness' \
+                or parameterName == 'max. thickness':
+            self.computeThickness = None
+        # in case we change the way nodes are coloured: update colour mapping
+        if parameterName == 'colouring' \
+                or parameterName == 'colour attribute' \
+                or parameterName == 'arc colour':
+            self.colourMapping = None
+    #
+    def paint(self, inputData, solutionData,
+              canvas, convertX, convertY,
+              nodePredicate, routePredicate, arcPredicate,
+              boundingBox):
+        # first-time-only execution
+        if not 'thickness attribute' in self.parameterInfo:
+            def acceptable(x):
+                return (isinstance(x, int) or isinstance(x, float)) and \
+                    not isinstance(x, bool)
+            self.parameterInfo['thickness attribute'] = \
+                ArcAttributeParameterInfo(solutionData,
+                                          acceptable)
+            if len(self.parameterInfo['thickness attribute'].possibleValues) >0:
+                self.parameterValue['thickness attribute'] = \
+                    self.parameterInfo['thickness attribute'].possibleValues[0]
+        if not 'colour attribute' in self.parameterInfo:
+            self.parameterInfo['colour attribute'] = \
+                ArcAttributeParameterInfo(solutionData,
+                                          lambda x: True)
+            self.parameterValue['colour attribute'] = \
+                self.parameterInfo['colour attribute'].possibleValues[0]
+        # build the list of all arcs to display
+        allArcs = []
+        for route in solutionData.routes:
+            if routePredicate is None or routePredicate(route):
+                for arc in route['arcs']:
+                    if arcPredicate is None or arcPredicate(arc):
+                        allArcs.append(arc)
+        # compute min and max demand if required
+        if self.computeThickness is None:
+            self.tValues = [ arc[self.parameterValue['thickness attribute']]
+                             for arc in allArcs ]
+            self.computeThickness =\
+                util.intervalMapping(min(self.tValues), max(self.tValues),
+                                     self.parameterValue['min. thickness'],
+                                     self.parameterValue['max. thickness'])
+        # enumerate values for colouring the arcs
+        if self.colourMapping is None:
+            colourValues = [ arc[self.parameterValue['colour attribute']]
+                             for arc in allArcs ]
+            if self.parameterValue['colouring'] == 'palette':
+                self.colourMapping = Palette(self.parameterValue['arc colour'],
+                                             colourValues )
+            elif self.parameterValue['colouring'] == 'gradient':
+                self.colourMapping = Gradient(self.parameterValue['arc colour'],
+                                              colourValues )
+        # special case where each arc has the same style: use faster method
+        if self.parameterValue['colouring'] == 'constant' and \
+                not self.parameterValue['thickness by attribute']:
+            style = DrawingStyle( \
+                self.parameterValue['arc colour'][0],
+                self.parameterValue['arc colour'][0],
+                lineThickness=self.parameterValue['min. thickness'])
+            x1s, y1s, x2s, y2s = [], [], [], []
+            for arc in allArcs:
+                node1 = inputData.nodes[arc['from']]
+                node2 = inputData.nodes[arc['to']]
+                # add arcs that should be displayed only
+                if self.parameterValue['draw depot arcs'] or\
+                        ( not node1['is depot'] and not node2['is depot'] ):
+                    x1s.append(convertX(node1['x']))
+                    y1s.append(convertY(node1['y']))
+                    x2s.append(convertX(node2['x']))
+                    y2s.append(convertY(node2['y']))
+            # now draw all arcs at once
+            canvas.drawLines(x1s, y1s, x2s, y2s, style)
+        # otherwise we must use a different style for each node
+        else:
+            # for convenience
+            cAttr = self.parameterValue['colour attribute']
+            tAttr = self.parameterValue['thickness attribute']
+            # we compute the style for each arc
+            styles = []
+            for arc in allArcs:
+                thickness = self.computeThickness(arc[tAttr]) \
+                    if self.parameterValue['thickness by attribute'] \
+                    else self.parameterValue['min. thickness']
+                colour = self.colourMapping[arc[cAttr]] \
+                    if self.parameterValue['colouring'] != 'constant'\
+                    else self.parameterValue['arc colour'][0]
+                styles.append( DrawingStyle( colour, colour, thickness ) )
+            # now we can display each arc separately
+            for arc, style in zip(allArcs, styles):
+                node1 = inputData.nodes[arc['from']]
+                node2 = inputData.nodes[arc['to']]
+                if self.parameterValue['draw depot arcs'] or\
+                        ( not node1['is depot'] and not node2['is depot'] ):
+                    canvas.drawLine(convertX(node1['x']),
+                                    convertY(node1['y']),
+                                    convertX(node2['x']),
+                                    convertY(node2['y']),
+                                    style)
