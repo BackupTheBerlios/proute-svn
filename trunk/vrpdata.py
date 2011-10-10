@@ -270,6 +270,11 @@ class VrpSolutionData(object):
                 self.populateRouteDataFromNodes()
             elif 'arcs' in self.routes[0]:
                 self.populateRouteDataFromArcs(vrpData)
+        # enrich arc information
+        for i, route in enumerate(self.routes):
+            for arc in route['arcs']:
+                arc['route'] = i
+        self.routeArcAttributes.append('route')
 
     # generate missing data from route information
     def filterRouteData(self):
