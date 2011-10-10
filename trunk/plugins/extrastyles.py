@@ -49,8 +49,7 @@ class NodeLSDDisplayer( Style ):
 # Style for a solution data: draw arcs with splines
 class RouteSplineDisplayer(basestyles.RouteDisplayer):
     description = 'routes as splines'
-    def __init__(self, parameterValue={}):
-        basestyles.RouteDisplayer.__init__(self, parameterValue)
+    def initialise(self):
         self.requiredRouteAttributes += [ 'node sequence' ]
     # display each route
     def paint(self, inputData, solutionData,
@@ -74,8 +73,8 @@ class RouteSplineDisplayer(basestyles.RouteDisplayer):
 class RouteLSDDisplayer(basestyles.RouteDisplayer):
     description = 'LSD routes'
     #
-    def __init__(self, parameterValue={}):
-        basestyles.RouteDisplayer.__init__(self, parameterValue)
+    def initialise(self):
+        basestyles.RouteDisplayer.initialise(self)
         del self.parameterInfo['arc colour']
         self.requiredRouteAttributes += [ 'node sequence' ]
                  

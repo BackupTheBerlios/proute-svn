@@ -162,8 +162,8 @@ class ReportlabCanvas(Canvas):
         
     # draw a spline; each element in points is a 2-uple with x,y coordinates
     def drawSpline(self, points, style):
-        # required to close the path
-        points.append(points[-1])
+        # required to close the path on each side
+        points = [ points[0] ] + points + [ points[-1] ]
         self.setDrawingStyle(style)
         for i in range(1, len(points)-1):
             self.canvas.bezier((points[i][0] + points[i-1][0]) / 2.0,

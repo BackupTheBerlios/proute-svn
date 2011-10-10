@@ -90,7 +90,7 @@ class NodeLabelDisplayer( Style ):
         'y offset': 0,
         'foreground colour': Colour(0, 0, 0, 255),
         'background colour': Colour(0, 0, 0, 255),
-        'font size': 12,
+        'font size': 9,
         'font family': 'Verdana',
         'font style': 'normal',
         'hide unused nodes': False,

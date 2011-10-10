@@ -69,11 +69,11 @@ class SchedulingNodes( Style ):
         'reduced horizon': BoolParameterInfo(),
         }
     defaultValue = {
-        'alpha blending': 128,
+        'alpha blending': 170,
         'node guide': True,
         'font colour': colours.black,
         'font size': 9,
-        'max. height': 20,
+        'max. height': 12,
         'time window': True,
         'time window colour': colours.dimcyan,
         'waiting time': True,
