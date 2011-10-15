@@ -524,6 +524,7 @@ class FlexibleArcDisplayer( Style ):
         'arc colour': ColourMapParameterInfo(),
         'thickness by attribute': BoolParameterInfo(),
         'draw depot arcs': BoolParameterInfo(),
+        'filter active': BoolParameterInfo(),
         }
     defaultValue = {
         'min. thickness': 1,
@@ -532,6 +533,9 @@ class FlexibleArcDisplayer( Style ):
         'arc colour': ColourMap([colours.black]),
         'thickness by attribute': False,
         'draw depot arcs': True,
+        'filter active': False,
+        'filter attribute': 'from',
+        'filter value': '0',
         }
     def initialise(self):
         # for thickness by attribute
@@ -556,6 +560,11 @@ class FlexibleArcDisplayer( Style ):
                 or parameterName == 'colour attribute' \
                 or parameterName == 'arc colour':
             self.colourMapping = None
+        # in case we change the attribute on which the filter is based,
+        # we must compute the list of possible values for this attribute
+        if parameterName == 'filter attribute':
+            del self.parameterInfo['filter value']
+            del self.parameterValue['filter value']
     #
     def paint(self, inputData, solutionData,
               canvas, convertX, convertY,
@@ -578,13 +587,40 @@ class FlexibleArcDisplayer( Style ):
                                           lambda x: True)
             self.parameterValue['colour attribute'] = \
                 self.parameterInfo['colour attribute'].possibleValues[0]
+        if not 'filter attribute' in self.parameterInfo:
+            acceptable = \
+                lambda x: True #isinstance(x, int) or \
+                #isinstance(x, str) or isinstance(x, float)
+            self.parameterInfo['filter attribute'] = \
+                ArcAttributeParameterInfo(solutionData,
+                                          acceptable)
+        if not 'filter value' in self.parameterInfo:
+            values = [ [ arc[self.parameterValue['filter attribute']]
+                         for arc in route['arcs'] ]
+                       for route in solutionData.routes ]
+            values = reduce(lambda x, y: x+y, values)
+            self.fValues = [ x if isinstance(x, str) else str(x)
+                             for x in values ]
+            uniqueValues = [ x for x in set ( self.fValues ) ]
+            uniqueValues.sort()
+            self.parameterInfo['filter value'] = \
+                EnumerationParameterInfo(uniqueValues)
+            # case where it hasn't been set yet
+            if not 'filter value' in self.parameterValue or \
+                    not self.parameterValue['filter value'] in uniqueValues:
+                self.parameterValue['filter value'] = uniqueValues[0]
         # build the list of all arcs to display
         allArcs = []
         for route in solutionData.routes:
             if routePredicate is None or routePredicate(route):
                 for arc in route['arcs']:
                     if arcPredicate is None or arcPredicate(arc):
-                        allArcs.append(arc)
+                        value = arc[self.parameterValue['filter attribute']]
+                        if not isinstance(value, str):
+                            value = str(value)
+                        if not self.parameterValue['filter active'] or \
+                                value == self.parameterValue['filter value']:
+                            allArcs.append(arc)
         # compute min and max demand if required
         if self.computeThickness is None:
             self.tValues = [ arc[self.parameterValue['thickness attribute']]

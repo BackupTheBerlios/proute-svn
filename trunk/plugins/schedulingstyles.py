@@ -28,11 +28,9 @@ def computeNodeIndices(inputData,
     return nodeIndices
 
 def computeHorizon(inputData,
-                   solutionData,
-                   nodeIndices,
-                   reducedHorizon):
+                   solutionData):
     dates = []
-    indices = nodeIndices if reducedHorizon else range(len(inputData.nodes))
+    indices = range(len(inputData.nodes))
     for index in indices:
         for attr in dateInputAttributes:
             if attr in inputData.nodes[index]:
@@ -52,13 +50,14 @@ class SchedulingNodes( Style ):
         'node guide': BoolParameterInfo(),
         'font colour': colourInfo,
         'font size': IntParameterInfo(6, 40),
-        'max. height': IntParameterInfo(6, 40),
         'time window': BoolParameterInfo(),
         'time window colour': colourInfo,
+        'rect. height (input)': IntParameterInfo(6, 40),
         'waiting time': BoolParameterInfo(),
         'waiting time colour': colourInfo,
         'service time': BoolParameterInfo(),
         'service time colour': colourInfo,
+        'rect. height (solution)': IntParameterInfo(6, 40),
         'lunch break': BoolParameterInfo(),
         'lunch break colour': colourInfo,
         'vehicle line': BoolParameterInfo(),
@@ -66,20 +65,22 @@ class SchedulingNodes( Style ):
         'vehicle line thickness': IntParameterInfo(0, 10),
         'time scale': BoolParameterInfo(),
         'time scale precision': IntParameterInfo(2, 20),
-        'reduced horizon': BoolParameterInfo(),
+        'row height is fixed': BoolParameterInfo(),
+        'row height': IntParameterInfo(5, 50),
         }
     defaultValue = {
         'alpha blending': 170,
         'node guide': True,
         'font colour': colours.black,
         'font size': 9,
-        'max. height': 12,
+        'rect. height (input)': 10,
         'time window': True,
         'time window colour': colours.dimcyan,
         'waiting time': True,
         'waiting time colour': colours.darkorange,
         'service time': True,
         'service time colour': colours.red,
+        'rect. height (solution)': 6,
         'lunch break': False,
         'lunch break colour': colours.transparent,
         'vehicle line': True,
@@ -89,8 +90,10 @@ class SchedulingNodes( Style ):
         'time scale precision': 5,
         'font family': 'Verdana',
         'font style': 'normal',
-        'reduced horizon': False,
+        'row height is fixed': False,
+        'row height': 16,
         }
+
     #
     def paint(self, inputData, solutionData,
               canvas, convertX, convertY,
@@ -100,7 +103,7 @@ class SchedulingNodes( Style ):
         xmin, ymin, xmax, ymax = boundingBox
         x0, y0, x1, y1 = \
             convertX(xmin), convertY(ymin), convertX(xmax), convertY(ymax)
-        y0 += self.parameterValue['font size']
+        y0 += 2 * self.parameterValue['font size']
         x0 += 2 * self.parameterValue['font size']
 #         # useless border
 #         style = DrawingStyle(colours.red,
@@ -115,17 +118,21 @@ class SchedulingNodes( Style ):
                                          solutionData,
                                          nodePredicate,
                                          routePredicate)
-        rowHeight = (y1 - y0) / len(nodeIndices)
+        if self.parameterValue['row height is fixed']:
+            rowHeight = self.parameterValue['row height']
+        else:
+            rowHeight = (y1 - y0) / len(nodeIndices)
         halfRowHeight = rowHeight / 2.0
-        halfRectHeight = self.parameterValue['max. height'] / 2.0
+        inputHalfRectHeight = self.parameterValue['rect. height (input)'] / 2.0
+        solutionHalfRectHeight = \
+            self.parameterValue['rect. height (solution)'] / 2.0
+        halfRectHeight = max (inputHalfRectHeight, solutionHalfRectHeight)
         indexToRow = {}
         for index in nodeIndices:
             indexToRow[index] = len(indexToRow)
         # time horizon
         dMin, dMax = computeHorizon(inputData,
-                                    solutionData,
-                                    nodeIndices,
-                                    self.parameterValue['reduced horizon'])
+                                    solutionData)
         # convert time to x coordinate
         timeToX = util.intervalMapping(dMin, dMax, x0, x1)
         # global font for this style
@@ -141,19 +148,49 @@ class SchedulingNodes( Style ):
             for i in range(self.parameterValue['time scale precision']):
                 value = i * (dMax - dMin) \
                     / self.parameterValue['time scale precision']
-                canvas.drawText(str(value), timeToX(value), y0,
-                                font, fontColour, fontColour)
-        # list of dicts of rectangle parameters
-        rectangleInfo = {}
-        for attr in [ 'time window', 'waiting time', 'service time' ]:
-            if self.parameterValue[attr]:
-                colour = self.parameterValue[attr + ' colour']
-                colour.alpha = self.parameterValue['alpha blending']
-                rectangleInfo[attr] =  { 'xs': [],
-                                         'ys': [],
-                                         'ws': [],
-                                         'hs': [],
-                                         'colour': colour }
+                canvas.drawLine( timeToX(value),
+                                 y0,
+                                 timeToX(value),
+                                 y0 - self.parameterValue['font size'] / 3.0,
+                                 style)
+                canvas.drawFancyText(str(value),
+                                     timeToX(value),
+                                     y0 - self.parameterValue['font size'],
+                                     font, fontColour, fontColour,
+                                     referencePoint='centre')
+        # list of things to display (input and solution)
+        inputRectangleInfo, solutionRectangleInfo = \
+            self.initialiseRectangles()
+        # now fill this with data
+        # First, input data
+        for rect in inputRectangleInfo:
+            for nodeIndex in indexToRow:
+                row = indexToRow[nodeIndex]
+                begin = timeToX(inputData.nodes[nodeIndex][rect['begin']])
+                end = timeToX(inputData.nodes[nodeIndex][rect['end']])
+                rect['xs'].append(begin)
+                rect['ys'].append(y0 + row * rowHeight + \
+                                      halfRowHeight + inputHalfRectHeight)
+                rect['ws'].append(end - begin)
+                rect['hs'].append(self.parameterValue['rect. height (input)'])
+        # Next, solution data
+        for rect in solutionRectangleInfo:
+            for route in solutionData.routes:
+                if routePredicate and not routePredicate(route):
+                    continue
+                for node in route['node information']:
+                    nodeIndex = node['index']
+                    if not nodeIndex in indexToRow:
+                        continue
+                    row = indexToRow[nodeIndex]
+                    begin = timeToX(node[rect['begin']])
+                    end = timeToX(node[rect['end']])
+                    rect['xs'].append(begin)
+                    rect['ys'].append(y0 + row * rowHeight + halfRowHeight + \
+                                          solutionHalfRectHeight)
+                    rect['ws'].append(end - begin)
+                    rect['hs'].append(\
+                        self.parameterValue['rect. height (solution)'])
         # for each node, display various stuff
         for nodeIndex in indexToRow:
             index = nodeIndex
@@ -165,50 +202,19 @@ class SchedulingNodes( Style ):
                 canvas.drawText(str(index),
                                 x0 - 2 * self.parameterValue['font size'], y,
                                 font, fontColour, fontColour)
-            # line for each node
+                # line for each node
                 canvas.drawLine(x0, yBase, x1, yBase,
                                 DrawingStyle(colours.funkygreen,
                                              colours.funkygreen,
                                              .1))
-            # time window
-            if self.parameterValue['time window']:
-                e = timeToX(inputData.nodes[index]['release time'])
-                l = timeToX(inputData.nodes[index]['due date'])
-                rectangleInfo['time window']['xs'].append(e)
-                rectangleInfo['time window']['ys'].append(yBase +halfRectHeight)
-                rectangleInfo['time window']['ws'].append(l - e)
-                rectangleInfo['time window']['hs'].append(\
-                    self.parameterValue['max. height'])
-            # waiting time
-            if self.parameterValue['waiting time']:
-                arrival = timeToX(solutionData.nodes[index]['arrival time'])
-                start = timeToX(solutionData.nodes[index]['start of service'])
-                rectangleInfo['waiting time']['xs'].append(arrival)
-                rectangleInfo['waiting time']['ys'].append(\
-                    yBase + halfRectHeight)
-                rectangleInfo['waiting time']['ws'].append(start - arrival)
-                rectangleInfo['waiting time']['hs'].append(\
-                    self.parameterValue['max. height'])
-            # service time
-            if self.parameterValue['service time']:
-                start = timeToX(solutionData.nodes[index]['start of service'])
-                end = timeToX(solutionData.nodes[index]['end of service'])
-                rectangleInfo['service time']['xs'].append(start)
-                rectangleInfo['service time']['ys'].append(\
-                    yBase + halfRectHeight)
-                rectangleInfo['service time']['ws'].append(end - start)
-                rectangleInfo['service time']['hs'].append(\
-                    self.parameterValue['max. height'])
         # now we can display all the rectangle
-        for attr in [ 'time window', 'waiting time', 'service time' ]:
-            if self.parameterValue[attr]:
-                info = rectangleInfo[attr]
-                canvas.drawRectangles(info['xs'], info['ys'],
-                                      info['ws'], info['hs'],
-                                      DrawingStyle(info['colour'],
-                                                   info['colour'],
-                                                   0),
-                                      'northwest')
+        for rect in inputRectangleInfo + solutionRectangleInfo:
+            colour = rect['colour']
+            colour.alpha = self.parameterValue['alpha blending']
+            canvas.drawRectangles(rect['xs'], rect['ys'],
+                                  rect['ws'], rect['hs'],
+                                  DrawingStyle(colour, colour, 0),
+                                  'northwest')
         # display routes
         if self.parameterValue['vehicle line']:
             colour = self.parameterValue['vehicle line colour']
@@ -216,32 +222,67 @@ class SchedulingNodes( Style ):
             style = DrawingStyle(colour, colour,
                                  self.parameterValue['vehicle line thickness'])
             for route in solutionData.routes:
-                if routePredicate is None or routePredicate(route):
-                    for nextNodeIndexIndex, nodeIndex in \
-                            enumerate(route['node sequence'][:-1]):
-                        nextNodeIndex = \
-                            route['node sequence'][nextNodeIndexIndex+1]
-                        row1 = indexToRow[nodeIndex]
-                        row2 = indexToRow[nextNodeIndex]
-                        y1 = y0 + row1 * rowHeight + halfRowHeight
-                        y2 = y0 + row2 * rowHeight + halfRowHeight
-                        xArrival = timeToX(solutionData.nodes[nodeIndex]\
-                                               ['arrival time'])
-                        xDeparture = timeToX(solutionData.nodes[nodeIndex]\
-                                                 ['end of service'])
-                        xNextArrival = timeToX(\
-                            solutionData.nodes[nextNodeIndex]['arrival time'])
-                        # horizontal line from arrival at this node
-                        # until departure
-                        canvas.drawLine(xArrival, y1, xDeparture, y1, style)
-                        # travel line to the next node
-                        canvas.drawLine(xDeparture, y1, xNextArrival, y2, style)
-                    # service at the last node
-                    lastNodeIndex = route['node sequence'][-1]
-                    row = indexToRow[lastNodeIndex]
-                    y = y0 + row * rowHeight + halfRowHeight
-                    xArrival = timeToX(solutionData.nodes[lastNodeIndex]\
-                                           ['arrival time'])
-                    xDeparture = timeToX(solutionData.nodes[lastNodeIndex]\
-                                             ['end of service'])
-                    canvas.drawLine(xArrival, y, xDeparture, y, style)
+                if routePredicate and not routePredicate(route):
+                    continue
+                for i, node in enumerate(route['node information'][:-1]):
+                    nextNode = route['node information'][i+1]
+                    row1 = indexToRow[node['index']]
+                    row2 = indexToRow[nextNode['index']]
+                    y1 = y0 + row1 * rowHeight + halfRowHeight
+                    y2 = y0 + row2 * rowHeight + halfRowHeight
+                    xArrival = timeToX(node['arrival time'])
+                    xDeparture = timeToX(node['end of service'])
+                    xNextArrival = timeToX(nextNode['arrival time'])
+                    # horizontal line from arrival at this node
+                    # until departure
+                    canvas.drawLine(xArrival, y1, xDeparture, y1, style)
+                    # travel line to the next node
+                    canvas.drawLine(xDeparture, y1, xNextArrival, y2, style)
+                # service at the last node
+                lastNode = route['node information'][-1]
+                row = indexToRow[lastNode['index']]
+                y = y0 + row * rowHeight + halfRowHeight
+                xArrival = timeToX(lastNode['arrival time'])
+                xDeparture = timeToX(lastNode['end of service'])
+                canvas.drawLine(xArrival, y, xDeparture, y, style)
+
+    # initialise the rectangles we want to display
+    def initialiseRectangles(self):
+        # input data
+        inputRectangleInfo = []
+        if self.parameterValue['time window']:
+            inputRectangleInfo.append( { 'begin': 'release time',
+                                         'end': 'due date',
+                                         'colour': \
+                                             self.parameterValue\
+                                             ['time window colour'],
+                                         'xs': [],
+                                         'ys': [],
+                                         'ws': [],
+                                         'hs': [],
+                                         } )
+        # solution data
+        solutionRectangleInfo = []
+        if self.parameterValue['waiting time']:
+            solutionRectangleInfo.append( { 'begin': 'arrival time',
+                                            'end': 'start of service',
+                                            'colour': \
+                                                self.parameterValue\
+                                                ['waiting time colour'],
+                                            'xs': [],
+                                            'ys': [],
+                                            'ws': [],
+                                            'hs': [],
+                                            } )
+        if self.parameterValue['service time']:
+            solutionRectangleInfo.append( { 'begin': 'start of service',
+                                            'end': 'end of service',
+                                            'colour': \
+                                                self.parameterValue\
+                                                ['service time colour'],
+                                            'xs': [],
+                                            'ys': [],
+                                            'ws': [],
+                                            'hs': [],
+                                            } )
+        return inputRectangleInfo, solutionRectangleInfo

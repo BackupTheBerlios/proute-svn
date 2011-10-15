@@ -349,12 +349,18 @@ class VrpSolutionData(object):
             sequence = route['node sequence'] + [ route['node sequence'][-1] ]
             currentTime = 0
             for i, index in enumerate( sequence[:-1] ):
+                if index != route['node information'][i]['index']:
+                    print 'Inconsistent node information data in route'
+                    return
                 self.nodes[index]['arrival time'] = currentTime
+                route['node information'][i]['arrival time'] = currentTime
                 currentTime = max(vrpData.nodes[index]['release time'],
                                   currentTime)
                 self.nodes[index]['start of service'] = currentTime
+                route['node information'][i]['start of service'] = currentTime
                 currentTime += vrpData.nodes[index]['service time']
                 self.nodes[index]['end of service'] = currentTime
+                route['node information'][i]['end of service'] = currentTime
                 currentTime += vrpData.travelTime[index][sequence[i+1]]
 
     # enrich solution data
