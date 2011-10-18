@@ -57,16 +57,25 @@ class SolutionBrowser(wx.Panel):
         self.splitter.SetMinimumPaneSize(100)
         # add visualization/selection
         browserSizer.Add(self.splitter, 1, wx.EXPAND)
-
         # assign the correct sizer
         self.SetSizer(browserSizer)
         self.splitter.SetSashGravity(1)
+        # catch char events
+        self.Bind(wx.EVT_CHAR, self.onChar)
 
     # add more solutions to this browser
     def addSolutions(self, vrp, solutions):
         self.solutionBook.addSolutions(vrp, solutions,
                                        self.styleSheet, self.nodeInfoList)
         
+    # move/zoom the map with arrow and +/- keys
+    def onChar(self, event):
+        if event.GetUnicodeKey() == wx.WXK_DELETE or \
+                event.GetUnicodeKey() == wx.WXK_BACK:
+            self.solutionBook.removeSolution()
+        else:
+            event.Skip()
+            
 class SolutionListBook(wx.Listbook):
     def __init__(self, parent, id ):
         wx.Listbook.__init__(self, parent, id,
@@ -132,6 +141,10 @@ class SolutionListBook(wx.Listbook):
             # required to refresh thumbnails
             self.Refresh()
 
+    # remove the currently selected solution
+    def removeSolution(self):
+        self.DeletePage(self.GetSelection())
+        
 class NodeInputInformationList(wx.ListCtrl):
     def __init__(self, parent, ID,
                  vrpData, solutionData):

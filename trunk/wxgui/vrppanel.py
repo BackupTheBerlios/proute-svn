@@ -298,5 +298,8 @@ class VrpPanel(wx.Panel):
         elif unichr(event.GetUnicodeKey()) == '-':
             width *= zoomFactor
             height *= zoomFactor
+        else:
+            event.Skip()
+            return
         self.updateView(centerX, centerY, width, height)
         self.rePaint()
