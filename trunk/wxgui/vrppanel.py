@@ -273,6 +273,7 @@ class VrpPanel(wx.Panel):
     # move/zoom the map with arrow and +/- keys
     # delete the current solution with del or backspace
     def onChar(self, event):
+#         print event.GetKeyCode(), event.GetUnicodeKey(), chr(event.GetKeyCode()), unichr(event.GetUnicodeKey())
         # move the map by 10%
         xoffset = (self.styleSheet.xmax - self.styleSheet.xmin) * zoomKeyStep
         yoffset = (self.styleSheet.ymax - self.styleSheet.ymin) * zoomKeyStep
@@ -309,3 +310,4 @@ class VrpPanel(wx.Panel):
             return
         self.updateView(centerX, centerY, width, height)
         self.rePaint()
+        event.Skip()
