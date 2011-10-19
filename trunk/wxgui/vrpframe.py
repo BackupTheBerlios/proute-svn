@@ -69,6 +69,8 @@ class VrpFrame(wx.Frame):
         self.Bind(events.EVT_STYLESHEET_UPDATE, self.styleSheetUpdate)
         # in case the window is maximized
         self.Bind(wx.EVT_SIZE, self.sizeHandler)
+        # when the user wants to delete a solution
+        self.Bind(events.EVT_DELETE_SOLUTION, self.onDelete)
         # initialize frame starting layout and size
         if layout is None:
             self.useFactoryLayout(vrpData)
@@ -335,16 +337,25 @@ class VrpFrame(wx.Frame):
 
     # add more solutions in this window
     def addData(self, event):
+        solutionType = self.solutions[0].solutionType \
+            if len(self.solutions) > 0 else None
         vrpData, solutionData, styleSheet = \
             vrpgui.loadDataInteractively(problemType=self.vrpData.problemType,
                                          instanceType=self.vrpData.instanceType,
                                          instanceFileName=self.vrpData.fName,
-                                         solutionType=\
-                                             self.solutions[0].solutionType)
+                                         solutionType=solutionType)
         if vrpData and solutionData:
             self.browserPanel.addSolutions(vrpData, solutionData)
             self.solutions += solutionData
 
+    # delete the currently selected solution
+    def onDelete(self, event):
+        index = self.browserPanel.solutionBook.GetSelection()
+        del self.solutions[index]
+        self.browserPanel.solutionBook.removeSolution()
+        if len(self.solutions) > 0:
+            self.browserPanel.solutionBook.GetCurrentPage().SetFocus()
+            
     # pop grid controls frame
     def popGridControls(self, event):
         try:

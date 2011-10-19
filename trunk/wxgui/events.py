@@ -1,7 +1,6 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: July 29th 2011 by Fabien Tricoire
 #
 import wx.lib.newevent
 
@@ -106,4 +105,15 @@ class PreferencesEvent(wx.PyCommandEvent):
         self.EventObject = object
 def postPreferencesEvent(object):
     event = PreferencesEvent(preferencesEventType, object)
+    object.GetEventHandler().ProcessEvent(event)
+
+# solution delete event: signal that the user wants to remove a solution
+deleteSolutionEventType = wx.NewEventType()
+EVT_DELETE_SOLUTION = wx.PyEventBinder(deleteSolutionEventType, 1)
+class DeleteSolutionEvent(wx.PyCommandEvent):
+    def __init__(self, eventType, object):
+        wx.PyCommandEvent.__init__(self, eventType, object.GetId())
+        self.EventObject = object
+def postDeleteSolutionEvent(object):
+    event = DeleteSolutionEvent(deleteSolutionEventType, object)
     object.GetEventHandler().ProcessEvent(event)

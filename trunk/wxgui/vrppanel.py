@@ -11,6 +11,7 @@ import wx
 
 import config
 import wxcanvas
+import events
 
 # zoom operations on the displayed solution
 maxZoom=10000
@@ -61,7 +62,7 @@ class VrpPanel(wx.Panel):
         # zoom using the scroll wheel
         self.Bind(wx.EVT_MOUSEWHEEL, self.onMouseWheel)
         # also navigate the map with the arrow keys
-        self.Bind(wx.EVT_CHAR, self.onChar)
+        self.Bind(wx.EVT_KEY_DOWN, self.onChar)
         # useful to build file name for saving a same panel multiple times
         self.nTimesSaved = 0
         
@@ -270,6 +271,7 @@ class VrpPanel(wx.Panel):
         self.dragX, self.dragY = None, None
 
     # move/zoom the map with arrow and +/- keys
+    # delete the current solution with del or backspace
     def onChar(self, event):
         # move the map by 10%
         xoffset = (self.styleSheet.xmax - self.styleSheet.xmin) * zoomKeyStep
@@ -298,6 +300,10 @@ class VrpPanel(wx.Panel):
         elif unichr(event.GetUnicodeKey()) == '-':
             width *= zoomFactor
             height *= zoomFactor
+        elif event.GetUnicodeKey() == wx.WXK_DELETE or \
+                event.GetUnicodeKey() == wx.WXK_BACK:
+            events.postDeleteSolutionEvent(self)
+            return
         else:
             event.Skip()
             return
