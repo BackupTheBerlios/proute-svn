@@ -432,12 +432,17 @@ class SolutionAttributesDisplayer( Style ):
                      'font family': 'Verdana',
                      'font style': 'normal',
                      }
-
+    def processAttributes(self, solutionData):
+        for attribute in solutionData.attributes:
+            if not 'display ' + attribute in self.parameterInfo:
+                self.parameterInfo['display ' + attribute] = BoolParameterInfo()
+                self.parameterValue['display ' + attribute] = True
     #
     def paint(self, inputData, solutionData,
               canvas, convertX, convertY,
               nodePredicate, routePredicate, arcPredicate,
               boundingBox):
+        self.processAttributes(solutionData)
         # two columns: attribute and value
         # for each column we want to compute the width,
         # i.e. the max width of an element
@@ -475,6 +480,11 @@ class SolutionAttributesDisplayer( Style ):
         foreground = self.parameterValue['foreground colour']
         background = self.parameterValue['background colour']
         for attribute in solutionData.attributes:
+            # only display attribute if it is selected
+            if not self.parameterValue['display ' + attribute]:
+                continue
+            else:
+                print self.parameterValue['display ' + attribute]
             canvas.drawFancyText(attribute,
                                  x + self.parameterValue['x offset'],
                                  y + self.parameterValue['y offset'],
