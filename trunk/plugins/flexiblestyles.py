@@ -555,7 +555,7 @@ class FlexibleArcDisplayer( Style ):
                 or parameterName == 'min. thickness' \
                 or parameterName == 'max. thickness':
             self.computeThickness = None
-        # in case we change the way nodes are coloured: update colour mapping
+        # in case we change the way arcs are coloured: update colour mapping
         if parameterName == 'colouring' \
                 or parameterName == 'colour attribute' \
                 or parameterName == 'arc colour':
@@ -578,6 +578,7 @@ class FlexibleArcDisplayer( Style ):
             self.parameterInfo['thickness attribute'] = \
                 ArcAttributeParameterInfo(solutionData,
                                           acceptable)
+        if not 'thickness attribute' in self.parameterValue:
             if len(self.parameterInfo['thickness attribute'].possibleValues) >0:
                 self.parameterValue['thickness attribute'] = \
                     self.parameterInfo['thickness attribute'].possibleValues[0]
@@ -585,6 +586,7 @@ class FlexibleArcDisplayer( Style ):
             self.parameterInfo['colour attribute'] = \
                 ArcAttributeParameterInfo(solutionData,
                                           lambda x: True)
+        if not 'colour attribute' in self.parameterValue:
             self.parameterValue['colour attribute'] = \
                 self.parameterInfo['colour attribute'].possibleValues[0]
         if not 'filter attribute' in self.parameterInfo:
@@ -610,6 +612,7 @@ class FlexibleArcDisplayer( Style ):
                     not self.parameterValue['filter value'] in uniqueValues:
                 self.parameterValue['filter value'] = uniqueValues[0]
         # build the list of all arcs to display
+        arcsToDisplay = []
         allArcs = []
         for route in solutionData.routes:
             if routePredicate is None or routePredicate(route):
@@ -620,7 +623,9 @@ class FlexibleArcDisplayer( Style ):
                             value = str(value)
                         if not self.parameterValue['filter active'] or \
                                 value == self.parameterValue['filter value']:
-                            allArcs.append(arc)
+                            arcsToDisplay.append(arc)
+                        # keep track of filtered arcs too
+                        allArcs.append(arc)
         # compute min and max demand if required
         if self.computeThickness is None:
             self.tValues = [ arc[self.parameterValue['thickness attribute']]
@@ -647,7 +652,7 @@ class FlexibleArcDisplayer( Style ):
                 self.parameterValue['arc colour'][0],
                 lineThickness=self.parameterValue['min. thickness'])
             x1s, y1s, x2s, y2s = [], [], [], []
-            for arc in allArcs:
+            for arc in arcsToDisplay:
                 node1 = inputData.nodes[arc['from']]
                 node2 = inputData.nodes[arc['to']]
                 # add arcs that should be displayed only
@@ -666,7 +671,7 @@ class FlexibleArcDisplayer( Style ):
             tAttr = self.parameterValue['thickness attribute']
             # we compute the style for each arc
             styles = []
-            for arc in allArcs:
+            for arc in arcsToDisplay:
                 thickness = self.computeThickness(arc[tAttr]) \
                     if self.parameterValue['thickness by attribute'] \
                     else self.parameterValue['min. thickness']
@@ -675,7 +680,7 @@ class FlexibleArcDisplayer( Style ):
                     else self.parameterValue['arc colour'][0]
                 styles.append( DrawingStyle( colour, colour, thickness ) )
             # now we can display each arc separately
-            for arc, style in zip(allArcs, styles):
+            for arc, style in zip(arcsToDisplay, styles):
                 node1 = inputData.nodes[arc['from']]
                 node2 = inputData.nodes[arc['to']]
                 if self.parameterValue['draw depot arcs'] or\

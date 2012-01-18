@@ -17,9 +17,12 @@ import config
 # output values between outputMin and outputMax
 # the mapping is linear
 def intervalMapping(inputMin, inputMax, outputMin, outputMax):
-    return lambda(x): outputMin\
-        + (x - float(inputMin)) / (inputMax - inputMin)\
-        * (outputMax - outputMin) #if x >= inputMin and x <= inputMax else None
+    if inputMin == inputMax:
+        return lambda(x): (outputMax + outputMin) / 2.0
+    else:
+        return lambda(x): outputMin\
+            + (x - float(inputMin)) / (inputMax - inputMin)\
+            * (outputMax - outputMin)
 
 # same as above but uses a modulo so that the value always matches
 def intervalMappingModulo(inputMin, inputMax,
