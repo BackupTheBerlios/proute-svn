@@ -358,6 +358,9 @@ class VrpSolutionData(object):
                                   currentTime)
                 self.nodes[index]['start of service'] = currentTime
                 route['node information'][i]['start of service'] = currentTime
+                # generate missing info on the fly
+                if not 'service time' in vrpData.nodes[index]:
+                    vrpData.nodes[index]['service time'] = 0
                 currentTime += vrpData.nodes[index]['service time']
                 self.nodes[index]['end of service'] = currentTime
                 route['node information'][i]['end of service'] = currentTime

@@ -88,10 +88,15 @@ class VRXInputData(vrpdata.VrpInputData):
                     elif tokens[0] == 'COMMODITIES':
                         self.attributes['commodities'] = tokens[1:]
                 elif section == 'locations':
+                    if tokens[0] != 'ANYWHERE':
+                        x, y = string.atof(tokens[1]), string.atof(tokens[2])
+                    else:
+                        x = min( [ a['x'] for a in self.locations] )
+                        y = min( [ a['y'] for a in self.locations] )
                     thisLocation = { 'label': tokens[0],
                                      'index': len(self.locations),
-                                     'x': string.atof(tokens[1]),
-                                     'y': string.atof(tokens[2]),
+                                     'x': x,
+                                     'y': y,
                                      'is depot': True }
                     self.locationIDToIndex[tokens[0]] = len(self.locations)
                     self.locations.append(thisLocation)
@@ -110,7 +115,7 @@ class VRXInputData(vrpdata.VrpInputData):
                                     'x': location['x'],
                                     'y': location['y'],
                                     'location': tokens[1],
-                                    'value': string.atoi(tokens[2]),
+                                    'value': string.atof(tokens[2]),
                                     'demands': [ string.atof(x)
                                                  for x in tokens[3:] ],
                                     'is depot': False,
@@ -154,6 +159,7 @@ class VRXSolutionData(vrpdata.VrpSolutionData):
             if tokens[0] == 'Vehicle':
                 currentVehicle = tokens[1]
                 stage = None
+                currentDuration = -1
             # case of a new route for this vehicle
             elif tokens[0] == 'Route':
                 currentRoute = tokens[1]
@@ -200,6 +206,9 @@ class VRXSolutionData(vrpdata.VrpSolutionData):
                 currentFields = tokens
             # case where we read information for one node
             elif stage == 'route':
+                # special case: multi-day virtual visit
+                if tokens[1][:5] == 'Reuse':
+                    continue
                 # special case: end of the route
                 if tokens[0] == '(End)':
                     tokens = [ None ]  + tokens
