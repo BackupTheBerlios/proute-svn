@@ -277,6 +277,9 @@ class VRX_CSVSolutionData(vrpdata.VrpSolutionData):
             elif stage == 'route':
                 if tokens[2] == '':
                     continue
+                # special case: multi-day virtual visit
+                if tokens[2][:5] == 'Reuse':
+                    continue
                 # special case: it's a depot
                 if tokens[2] == '(Start)' or tokens[2] == '(End)':
                     requestID = 'depot ' + tokens[3]
