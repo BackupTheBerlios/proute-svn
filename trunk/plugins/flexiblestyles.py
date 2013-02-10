@@ -1,8 +1,10 @@
 #
 # File created during the fall of 2010 (northern hemisphere) by Fabien Tricoire
 # fabien.tricoire@univie.ac.at
-# Last modified: Octber 11th 2011 by Fabien Tricoire
+# Last modified: February 10th 2013 by Fabien Tricoire
 #
+import sys
+
 from style import *
 
 import colours
@@ -525,6 +527,8 @@ class FlexibleArcDisplayer( Style ):
         'thickness by attribute': BoolParameterInfo(),
         'draw depot arcs': BoolParameterInfo(),
         'filter active': BoolParameterInfo(),
+        'gradient min. value': FloatParameterInfo(-sys.maxint, sys.maxint),
+        'gradient max. value': FloatParameterInfo(-sys.maxint, sys.maxint),
         }
     defaultValue = {
         'min. thickness': 1,
@@ -536,6 +540,8 @@ class FlexibleArcDisplayer( Style ):
         'filter active': False,
         'filter attribute': 'from',
         'filter value': '0',
+        # 'gradient min. value': 0,
+        # 'gradient max. value': 1,
         }
     def initialise(self):
         # for thickness by attribute
@@ -565,6 +571,25 @@ class FlexibleArcDisplayer( Style ):
         if parameterName == 'filter attribute':
             del self.parameterInfo['filter value']
             del self.parameterValue['filter value']
+        # if we change the attribute for colouring the arcs, we should
+        # recompute min/max values
+        if parameterName == 'colour attribute':
+            del self.parameterValue['gradient min. value']
+            del self.parameterValue['gradient max. value']
+        # if we change the bounds for the colour, we must recompute the
+        # colour mapping
+        if parameterName == 'gradient min. value' or \
+                parameterName == 'gradient max. value':
+            self.colourMapping = None
+        # consistency
+        if parameterName == 'gradient min. value' and \
+                'gradient max. value' in self.parameterValue and \
+                parameterValue > self.parameterValue['gradient max. value']:
+            Style.setParameter(self, 'gradient max. value', parameterValue)
+        if parameterName == 'gradient max. value' and \
+                'gradient min. value' in self.parameterValue and \
+                parameterValue < self.parameterValue['gradient min. value']:
+            Style.setParameter(self, 'gradient min. value', parameterValue)
     #
     def paint(self, inputData, solutionData,
               canvas, convertX, convertY,
@@ -611,6 +636,13 @@ class FlexibleArcDisplayer( Style ):
             if not 'filter value' in self.parameterValue or \
                     not self.parameterValue['filter value'] in uniqueValues:
                 self.parameterValue['filter value'] = uniqueValues[0]
+        if not 'gradient min. value' in self.parameterValue:
+            values = reduce(lambda x, y: x + y,
+                            [ [ arc[self.parameterValue['colour attribute']]
+                                for arc in route['arcs'] ]
+                              for route in solutionData.routes ])
+            self.setParameter('gradient min. value', min(values))
+            self.setParameter('gradient max. value', max(values))
         # build the list of all arcs to display
         arcsToDisplay = []
         allArcs = []
@@ -642,6 +674,8 @@ class FlexibleArcDisplayer( Style ):
                 self.colourMapping = Palette(self.parameterValue['arc colour'],
                                              colourValues )
             elif self.parameterValue['colouring'] == 'gradient':
+                colourValues +=  [ self.parameterValue['gradient min. value'],
+                                   self.parameterValue['gradient max. value'] ]
                 self.colourMapping = Gradient(self.parameterValue['arc colour'],
                                               colourValues )
         # special case where each arc has the same style: use faster method

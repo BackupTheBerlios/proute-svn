@@ -62,10 +62,10 @@ class IntStyleEditTool(StyleEditTool, wx.SpinCtrl):
     
 class FloatStyleEditTool(StyleEditTool, floatspin.FloatSpin):
     def __init__(self, parent, styleToEdit, paramName):
-        increment = (styleToEdit.parameterInfo[paramName].UB - \
-            styleToEdit.parameterInfo[paramName].LB) / 100.0
+        # increment = (styleToEdit.parameterInfo[paramName].UB - \
+        #     styleToEdit.parameterInfo[paramName].LB) / 100.0
         floatspin.FloatSpin.__init__(self, parent, id=-1,
-                                     increment=increment,
+                                     # increment=increment,
                                      digits=2,
                                      # agwStyle=floatspin.FS_RIGHT
                                      )
@@ -73,11 +73,17 @@ class FloatStyleEditTool(StyleEditTool, floatspin.FloatSpin):
         self.SetRange(styleToEdit.parameterInfo[paramName].LB,
                       styleToEdit.parameterInfo[paramName].UB)
         self.SetValue(styleToEdit.parameterValue[paramName])
+        self.update()
         self.Bind(floatspin.EVT_FLOATSPIN, self.modifyValue)
         
     def getValue(self):
         return self.GetValue()
 
+    def update(self):
+        currentValue = self.styleToEdit.parameterValue[self.parameterName]
+        if currentValue.__class__ == float or currentValue.__class__ == int:
+            self.SetValue(currentValue)
+            
 def wxColourToColour(colour):
     return style.Colour(colour.Red(), colour.Green(), colour.Blue(),
                         colour.Alpha())
