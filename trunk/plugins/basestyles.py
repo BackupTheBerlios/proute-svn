@@ -416,8 +416,8 @@ class SolutionAttributesDisplayer( Style ):
                                                             'top right',
                                                             'bottom left',
                                                             'bottom right' ] ),
-                      'x offset': IntParameterInfo(-50, 50),
-                      'y offset': IntParameterInfo(-50, 50),
+                      'x offset': IntParameterInfo(-100, 100),
+                      'y offset': IntParameterInfo(-100, 100),
                       'vertical padding': IntParameterInfo(0, 50),
                       'horizontal padding': IntParameterInfo(-50, 50),
                       }
