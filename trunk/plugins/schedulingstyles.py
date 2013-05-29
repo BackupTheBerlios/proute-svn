@@ -185,6 +185,9 @@ class SchedulingNodes( Style ):
                     row = indexToRow[nodeIndex]
                     begin = timeToX(node[rect['begin']])
                     end = timeToX(node[rect['end']])
+                    # even tiny intervals should be displayed
+                    if node[rect['begin']] != node[rect['end']]:
+                        end = max(end, begin + 1)
                     rect['xs'].append(begin)
                     rect['ys'].append(y0 + row * rowHeight + halfRowHeight + \
                                           solutionHalfRectHeight)

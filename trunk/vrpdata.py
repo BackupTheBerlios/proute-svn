@@ -365,6 +365,12 @@ class VrpSolutionData(object):
                 self.nodes[index]['end of service'] = currentTime
                 route['node information'][i]['end of service'] = currentTime
                 currentTime += vrpData.travelTime[index][sequence[i+1]]
+        # add dummy data for unvisited nodes
+        for node in self.nodes:
+            if not node['used']:
+                node['arrival time'] = -1
+                node['start of service'] = -1
+                node['end of service'] = -1
 
     # enrich solution data
     def generateMetaData(self, vrpData):

@@ -101,6 +101,7 @@ class TimeDataDisplayer(Style):
         canvas.drawRectangles(allX, allY, allW, allH, style,
                               referencePoint='southwest')
         # show waiting time if required
+        visited = set([ x['index'] for x in solutionData.nodes if x['used'] ])
         if self.parameterValue['show waiting time']:
             allX, allY, allW, allH = self.computeRectangles(inputData,
                                                             solutionData,
@@ -124,7 +125,7 @@ class TimeDataDisplayer(Style):
                                                             '+end of service',
                                                             newPredicate,
                                                             .6,
-                                                            2)
+                                                            1)
             style = DrawingStyle(self.parameterValue['service time colour'],
                                  self.parameterValue['service time colour'])
             canvas.drawRectangles(allX, allY, allW, allH, style,
@@ -168,8 +169,11 @@ class TimeDataDisplayer(Style):
                         self.timeToX(left))
             allY.append(convertY(node['y']) + \
                             self.parameterValue['y offset'] + \
-                            (1.0 - heightRatio)/2.0 * self.parameterValue['height'])
-            allW.append(max(minWidth,
-                            self.timeToX(right) - self.timeToX(left)))
+                            (1.0 - heightRatio)/2.0 * \
+                            self.parameterValue['height'])
+            thisW = self.timeToX(right) - self.timeToX(left)
+            if right != left:
+                thisW = max(minWidth, thisW)
+            allW.append(thisW)
             allH.append(self.parameterValue['height'] * heightRatio)
         return allX, allY, allW, allH
