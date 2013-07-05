@@ -74,7 +74,9 @@ def longestEndingSubstringIndex(strings):
 def reorder(strings):
     a = longestStartingSubstringIndex(strings)
     b = longestEndingSubstringIndex(strings)
-    pairs = [ (eval(s[a:b+1]) if len(s[a:b+1]) > 0 and s[a:b+1].isdigit() \
+    print a, b
+    print strings
+    pairs = [ (int(s[a:b+1]) if len(s[a:b+1]) > 0 and s[a:b+1].isdigit() \
                    else 0, s)
               for s in strings ]
     pairs.sort()

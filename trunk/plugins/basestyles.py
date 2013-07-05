@@ -436,6 +436,7 @@ class SolutionAttributesDisplayer( Style ):
         for attribute in solutionData.attributes:
             if not 'display ' + attribute in self.parameterInfo:
                 self.parameterInfo['display ' + attribute] = BoolParameterInfo()
+            if not 'display ' + attribute in self.parameterValue:
                 self.parameterValue['display ' + attribute] = True
     #
     def paint(self, inputData, solutionData,
