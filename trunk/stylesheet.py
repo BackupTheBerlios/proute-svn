@@ -5,6 +5,7 @@
 #
 import os
 import string
+import re
 from math import *
 
 import config
@@ -328,6 +329,8 @@ class StyleSheet(object):
 
     # export the stylesheet as a new class
     def export(self, name, defaultFor=[]):
+        # keep only alphanumeric characters
+        name = re.sub(r'\W+', '', name)
         print 'exporting with name=', name
         # do not export to a module with the same name as a builtin module
         if os.path.exists(\
