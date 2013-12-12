@@ -331,6 +331,8 @@ class StyleSheet(object):
     def export(self, name, defaultFor=[]):
         # keep only alphanumeric characters
         name = re.sub(r'\W+', '', name)
+        if name[0].isdigit():
+            name = 'a' + name
         print 'exporting with name=', name
         # do not export to a module with the same name as a builtin module
         if os.path.exists(\
